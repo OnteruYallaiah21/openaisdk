@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Default custom_instructions mapping.",
+  "styles": {
+    "formal": "Please respond in a formal tone.",
+    "casual": "Please respond in a casual tone.",
+    "veryformal": "Please respond in a very formal tone."
+  },
+  "default": "Please respond in a clear and helpful tone.",
+  "guidelines": [
+    "Be concise",
+    "Use appropriate tone",
+    "Avoid slang unless requested"
+  ]
+}

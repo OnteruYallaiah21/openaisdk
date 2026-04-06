@@ -1,0 +1,24 @@
+Purpose & Meaning
+What is this parameter/module used for?
+Why does it exist in the system?
+What role does it play in real-world usage?
+Required vs Optional
+Is this parameter required or optional?
+What types/values are allowed?
+Are there any default values?
+Control / Workflow Impact
+How does this parameter affect the module’s behavior or control flow?
+Does it trigger approvals, state changes, or validations?
+Inputs & Outputs
+What kind of inputs does it accept?
+How does it influence outputs or return values?
+Are there edge cases for its values?
+Integration & Dependencies
+Does it interact with other modules, tools, or services?
+How does it fit into the larger system or workflow?
+Error Handling / Failures
+What happens if the value is invalid or missing?
+How should errors related to this parameter be handled?
+Best Practices
+How should this parameter/module be used correctly?
+What common mistakes or anti-patterns should be avoided?

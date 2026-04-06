@@ -1,0 +1,60 @@
+this is one exmaple prepre the real use case force toll useagae  chnage the biusiness logic
+  and rewrite above code another logic  
+buiness logic with token usage n, agmnetconetct and Runcontexrwarpper useing all imporve 
+for anytime for insertting the  tool or intigarting tool i have some alredy intiliazed instances you can use those 
+import hesere those you need to mnetion those imports 
+
+rules
+=======
+1.if you want what clean code what it is doing what happens with out
+ thos what are the on=bservation you need to write under the every programming 
+2. print debug statemnments like control is  where easy identifing like 
+    print(f"[debug- contol {path(__file__)}]") like very clean  debug and stanembnt 
+First, explain the business scenario in detail, including:
+
+Why this functionality is needed
+What problem it solves in a real-world application
+The business rules involved
+
+For example, if the use case involves enforcing tool usage (such as requiring a database tool), clearly explain why the system must always connect to the database and why direct responses are not allowed.
+
+After explaining the business scenario, update the code to reflect this logic, ensuring that the tool usage (e.g., database access) is strictly enforced.
+
+Business Scenario (Real-World Example):
+In an enterprise HR system (e.g., used by companies like BNY Mellon or Anheuser Busch), employees submit leave requests and check leave balances via an internal portal. Accuracy and compliance are critical because:
+
+HR policies and leave balances must match the official records
+Incorrect responses can cause payroll errors, legal issues, or policy violations
+Data privacy must be strictly maintained
+
+Business Rule:
+
+The AI agent must always fetch leave balances from the HR database
+Direct responses from the AI are not allowed
+The system must enforce use of the HR database tool
+
+Your Task:
+
+Explain this real business scenario at the beginning of the code
+Describe why enforcing tool usage (database access) is mandatory
+Modify the given code to reflect this business logic
+Ensure the agent is forced to use the database tool and cannot bypass it
+don not make comaplexity rewrite below code with bisensss logic buid the dummay resposes with under the tolls with pydantic and costring and other annotated if need s isgdated quering db assume you are geeting the dat from tokks from dummy or sample response 
+6.from examples.auto_mode import is_auto_mode any where in above code if you find abpve import build the out custom logic do not use those imports 
+7. provide example input and  what happes inside , happy [ath exped output print in belwow
+8.simple flow explain very clearly do not make compalex
+9.give complete code , all imports shuld be on top of the code 
+10.explain the use case, in below code after "if __name__ == "__main__":" in multiline commants what we are learnined here , what observations, what should i, what should do not things in the programing 
+11. any input we need to ask from command line dymanically not hard code values provide some example usage in the code level 
+12. use the RunContexWrapper, dynamic prompting, and time taker for rach aganet and tool tarck and print in nice way like 
+13. provide some use cases like command line questions sample questions  for ai agnet  expected answers at the end of the code in comments 
+14. always use the open ai sdk apttern if you have any doubts refer the "https://openai.github.io/openai-agents-python/" for devlopernmnt becse we are u9sng this frame work 
+import sys
+root_path = Path(__file__).resolve().parent.parent
+sys.path.append(str(root_path))
+try:
+    from llm_model_config.llm_model_config import ModelSingleton
+    model = ModelSingleton.get_instance()
+    print("✅ Model loaded from config")
+
+when we createing the agnet we need to pass this emodel i9nstace to the magent config 
