@@ -17,4 +17,5 @@ async def main():
     print(result.final_output)
 if __name__ == "__main__":
     print(f"I am inside file called => {Path(__file__).resolve()}")
+    print("hellow world")
     asyncio.run(main())
