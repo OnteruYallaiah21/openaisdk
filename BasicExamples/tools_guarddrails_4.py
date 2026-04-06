@@ -100,7 +100,11 @@ if __name__ == "__main__":
                 )
         return ToolGuardrailFunctionOutput.allow()
 
-
+    agent= Agent(
+    name="Support agent",
+    instructions="Handle tickets and ask for approval when needed.",
+    model= model
+    )
     async def main():
         # Attach guardrails to the tool itself (Agent doesn't accept tool_input_guardrails)
         send_whatsapp_message.tool_input_guardrails = [reject_sensitive_words]
