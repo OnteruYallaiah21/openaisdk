@@ -22,6 +22,8 @@ __pycache__/
 # Build files
 dist/
 build/
+spec_kitty/
+metrics_20260408_103450.json
 
 # Jupyter
 .ipynb_checkpoints/

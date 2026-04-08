@@ -1,0 +1,16 @@
+Context Type: user_inpout_check
+Wrapper: RunContextWrapper
+Status: Initial State
+
+Details:
+  context: None
+  usage:
+    requests: 0
+    input_tokens: 0
+    cached_tokens: 0
+    output_tokens: 0
+    reasoning_tokens: 0
+    total_tokens: 0
+  turn_input: []
+  _approvals: {}
+  tool_input: None

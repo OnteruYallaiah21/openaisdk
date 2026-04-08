@@ -1,0 +1,1 @@
+ 1.yes , I a bough a new cemara recently, 250 it is not working fine right now i looking for the  refundurn is  is that possible 

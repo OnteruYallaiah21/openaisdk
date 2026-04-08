@@ -1,0 +1,5 @@
+
+logger.debug()    # developer info
+logger.info()     # normal flow
+logger.warning()  # something odd
+logger.error() 
