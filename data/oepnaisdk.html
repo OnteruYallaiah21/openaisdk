@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 OpenAI Agents SDK · Deep Execution Flow & Runtime State</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f5f9ff;
+            font-family: 'Inter', sans-serif;
+            padding: 30px 20px;
+            color: #0a1e2c;
+        }
+        .container { max-width: 1500px; margin: 0 auto; }
+        .header h1 {
+            font-weight: 650;
+            font-size: 2.8rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #0b2b44, #1c4b6e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sub {
+            color: #2c6080;
+            font-size: 1.1rem;
+            margin-top: 8px;
+            border-left: 5px solid #1e6f9f;
+            padding-left: 20px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin: 30px 0;
+        }
+        .card {
+            background: #ffffffec;
+            backdrop-filter: blur(2px);
+            border: 1px solid #d8e4f0;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 12px 24px -10px rgba(0,32,64,0.08);
+            border-top: 8px solid;
+            transition: 0.15s;
+        }
+        .card:hover { background: #ffffff; box-shadow: 0 22px 30px -12px #0b2b4420; }
+        .agent { border-top-color: #1e4b6e; }
+        .runner { border-top-color: #2b7a4b; }
+        .context { border-top-color: #b66824; }
+        .model { border-top-color: #8a4baf; }
+        .tools { border-top-color: #c44536; }
+        .guardrails { border-top-color: #bf7e2e; }
+        .handoffs { border-top-color: #0f7173; }
+
+        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+        .card-header i { font-size: 2rem; color: #1e3a5f; width: 36px; }
+        .card-header h3 { font-weight: 600; font-size: 1.7rem; }
+        .badge {
+            background: #e3ecf5;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #10354e;
+            display: inline-block;
+        }
+        .pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .pill {
+            background: white;
+            border: 1.5px solid #c6d9e9;
+            border-radius: 40px;
+            padding: 5px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #a6c1d9, transparent);
+            margin: 40px 0 20px;
+        }
+        .flowchart-box {
+            background: #ffffffdd;
+            border-radius: 32px;
+            padding: 30px 20px;
+            border: 1px solid #cbdae8;
+        }
+        .mermaid { display: flex; justify-content: center; }
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+        .comparison-table th {
+            background: #dae6f2;
+            padding: 14px 18px;
+            border-radius: 20px 20px 8px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            background: #f4faff;
+            padding: 16px 18px;
+            border-radius: 18px;
+            font-weight: 500;
+        }
+        .insight-block {
+            background: #e2edf9;
+            border-radius: 26px;
+            padding: 22px 28px;
+            border-left: 12px solid #1e5f7a;
+            margin: 30px 0;
+        }
+        .tag {
+            background: #1e3a5f;
+            color: white;
+            border-radius: 30px;
+            padding: 2px 14px;
+            margin-left: 12px;
+            font-size: 0.7rem;
+        }
+        .token-detail {
+            background: #0b1e2c10;
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 12px;
+        }
+        .tradeoff-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .toggle-note {
+            background: #fcf2e1;
+            border-radius: 20px;
+            padding: 16px 20px;
+            font-weight: 500;
+        }
+        .footer-note { text-align: center; opacity: 0.7; margin-top: 30px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🧩 OpenAI Agents SDK · Runtime & Execution</h1>
+        <div class="sub">turn_input · usage tokens · tool parallel · handoffs · trade‑offs</div>
+    </div>
+
+    <!-- 1. Core Components with extended details -->
+    <div style="margin: 25px 0 12px;">
+        <span style="font-weight: 650; font-size: 1.6rem;">⚙️ Core blocks — what they hold</span>
+        <span class="badge" style="margin-left: 18px;">Agent · Runner · RunContextWrapper</span>
+    </div>
+
+    <div class="card-grid">
+        <!-- AGENT -->
+        <div class="card agent">
+            <div class="card-header"><i class="fas fa-brain"></i><h3>Agent</h3></div>
+            <p><strong>Main orchestrator</strong> · Contains:</p>
+            <div class="pill-list">
+                <span class="pill">📋 instructions (prompt)</span>
+                <span class="pill">🤖 model</span>
+                <span class="pill">🔧 tools</span>
+                <span class="pill">🛡️ guardrails</span>
+                <span class="pill">🔀 handoffs</span>
+            </div>
+            <div class="badge" style="margin-top: 12px;">Brain + Rules</div>
+            <p style="margin-top: 16px;"><i class="fas fa-info-circle"></i> <strong>instructions</strong> define system behavior; <strong>handoffs</strong> list possible target agents.</p>
+        </div>
+        <!-- RUNNER -->
+        <div class="card runner">
+            <div class="card-header"><i class="fas fa-play-circle"></i><h3>Runner</h3></div>
+            <p><strong>Executes the agent</strong> · Manages:</p>
+            <div class="pill-list">
+                <span class="pill">🔄 Turns</span>
+                <span class="pill">🌊 Flow control</span>
+                <span class="pill">⚙️ Tool execution</span>
+                <span class="pill">🔁 Handoffs</span>
+            </div>
+            <div class="badge">Execution Engine</div>
+            <div style="margin-top: 16px; background:#e3f0e8; border-radius: 20px; padding: 14px;">
+                <i class="fas fa-sync-alt"></i> <strong>Turns:</strong> if max_turns=2, agent runs at most 2 LLM calls (or tool loops).<br>
+                ⚡ <strong>Trade‑off:</strong> higher turns → more reasoning, higher cost/latency. Lower turns → faster, may truncate.
+            </div>
+        </div>
+        <!-- RunContextWrapper (detailed) -->
+        <div class="card context">
+            <div class="card-header"><i class="fas fa-box-open"></i><h3>RunContextWrapper</h3></div>
+            <p><strong>Holds runtime state:</strong></p>
+            <div class="pill-list">
+                <span class="pill">📥 turn_input</span>
+                <span class="pill">📊 usage</span>
+                <span class="pill">🧰 tool_input</span>
+                <span class="pill">✅ _approvals</span>
+            </div>
+            <div class="badge">State Container</div>
+            <!-- Extended token / usage details -->
+            <div class="token-detail">
+                <i class="fas fa-coins"></i> <strong>usage (tokens):</strong>
+                <ul style="margin-top: 8px; margin-left: 20px;">
+                    <li><code>input_tokens</code> · prompt tokens</li>
+                    <li><code>output_tokens</code> · completion tokens</li>
+                    <li><code>reasoning_tokens</code> · (if o1/o3)</li>
+                    <li><code>cached_tokens</code> · prompt cache hit</li>
+                </ul>
+                <p style="margin-top: 8px;"><code>turn_input</code> stores current user/LLM input for the turn.<br>
+                <code>_approvals</code> tracks human‑in‑loop decisions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- second row: model, tools, guardrails, handoffs -->
+    <div class="card-grid">
+        <div class="card model">
+            <div class="card-header"><i class="fas fa-robot"></i><h3>Model (LLM)</h3></div>
+            <p>Generates response · decides direct, tool, or handoff.</p>
+            <div class="pill-list"><span class="pill">💬 answer</span><span class="pill">🛠️ tool_call</span><span class="pill">🤝 handoff</span></div>
+            <div class="badge">Reasoning Engine</div>
+        </div>
+        <div class="card tools">
+            <div class="card-header"><i class="fas fa-toolbox"></i><h3>Tools</h3></div>
+            <p>Functions callable by LLM · <strong>default: run in parallel</strong> (if multiple).<br>
+            ⚡ <strong>Sequential tool use:</strong> set <code>tool_use_behavior="run_llm_again"</code> or use <code>parallel_tool_calls=False</code> (explicit).</p>
+            <div class="toggle-note" style="margin-top: 12px;">
+                <i class="fas fa-code-branch"></i> <strong>Trade‑off:</strong> parallel → faster but may cause race. Sequential → deterministic, higher latency.<br>
+                For CPU‑bound or ordered ops, force sequential.
+            </div>
+        </div>
+        <div class="card guardrails">
+            <div class="card-header"><i class="fas fa-shield-hal"></i><h3>Guardrails</h3></div>
+            <p>Input (before LLM) · Output (after LLM) · can tripwire.</p>
+            <div class="pill-list"><span class="pill">🚦 input check</span><span class="pill">🔍 output filter</span></div>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; margin: 8px 0 20px;">
+        <div class="card handoffs" style="max-width: 500px;">
+            <div class="card-header"><i class="fas fa-code-branch"></i><h3>Handoffs</h3></div>
+            <p>Transfer control to another agent. Agent holds handoff targets.</p>
+            <div class="pill-list"><span class="pill">agent_A → agent_B</span><span class="pill">🔄 recursive</span></div>
+            <div class="badge">Agent-to-Agent Routing</div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- EXECUTION FLOW (step-by-step with extra info) -->
+    <div style="margin: 20px 0 12px;">
+        <span style="font-weight: 650; font-size: 1.6rem;">🔁 Execution flow — step‑by‑step + runtime details</span>
+        <span class="tag">turn_input · guardrails · tool parallel · handoff</span>
+    </div>
+
+    <div class="flowchart-box">
+        <div class="mermaid">
+            %%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1e4b6e','primaryTextColor':'#fff','lineColor':'#3a6d8c'}}}%%
+            flowchart TD
+                A([🏁 Runner.run agent, input]) --> B[📦 Create RunContextWrapper<br><b>turn_input, usage, tool_input, _approvals</b>]
+                B --> C{🛡️ INPUT GUARDRAILS<br>seq / parallel}
+                C -- pass --> D[🤖 LLM CALL]
+                C -- fail --> END1([⛔ Stop])
+                D --> E{🧠 LLM decides}
+                E -- ✅ Direct --> F[📝 text] --> G[🛡️ OUTPUT GUARDRAILS] --> H([🏁 FinalOutput + usage tokens])
+                E -- 🔧 Tool Call --> I[⚙️ execute tools<br><b>default PARALLEL</b><br>explicit sequential possible]
+                I --> J{tool_use_behavior}
+                J -- return_tool_output --> K[📤 return tool] --> H
+                J -- run_llm_again --> L[🔄 LLM again with result] --> D
+                E -- 🔀 Handoff --> M[🤝 handoff to Agent B] --> N[🔁 Switch agent] --> B
+                
+                style B fill:#b66824,stroke:#8e4f1a,color:#fff
+                style D fill:#5f4b8b,stroke:#3b2e5c,color:#fff
+                style I fill:#c44536,stroke:#9e352a,color:#fff
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 22px;">
+            <span style="background:#b6682420; padding:6px 16px; border-radius: 30px;"><i class="fas fa-box"></i> turn_input · usage tokens (input/output/reasoning/cached)</span>
+            <span style="background:#c4453620; padding:6px 16px; border-radius: 30px;"><i class="fas fa-bolt"></i> tools default parallel · sequential needs explicit</span>
+            <span style="background:#1e4b6e20; padding:6px 16px; border-radius: 30px;"><i class="fas fa-rotate"></i> turn limit affects loops (max_turns)</span>
+        </div>
+    </div>
+
+    <!-- Deep dive: turn_input, usage, tradeoffs -->
+    <div class="insight-block">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-microchip" style="font-size: 1.8rem;"></i>
+            <span style="font-weight: 700; font-size: 1.5rem;">🔬 Inside RunContextWrapper — what it carries</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px;">
+            <div>
+                <h4><i class="fas fa-arrow-right"></i> turn_input</h4>
+                <p>The exact input for the current turn (user message or previous LLM/tool result). Used for context.</p>
+                <h4 style="margin-top: 16px;"><i class="fas fa-chart-bar"></i> usage (token breakdown)</h4>
+                <ul style="margin-left: 20px;">
+                    <li><code>input_tokens</code> · prompt</li>
+                    <li><code>output_tokens</code> · completion</li>
+                    <li><code>reasoning_tokens</code> · (o1/o3 internal)</li>
+                    <li><code>cached_tokens</code> · prompt caching hit</li>
+                </ul>
+                <p><strong>Trade‑off:</strong> enable prompt caching reduces cost/latency, but may affect determinism if cache varies.</p>
+            </div>
+            <div>
+                <h4><i class="fas fa-toolbox"></i> tool_input</h4>
+                <p>Stores parameters passed to tool, can be inspected for debugging.</p>
+                <h4 style="margin-top: 16px;"><i class="fas fa-check-shield"></i> _approvals</h4>
+                <p>Tracks human approval state for tools with approval required. If deactivated, tools run automatically (less safety).</p>
+                <p><strong>Trade‑off:</strong> approvals add latency but prevent risky actions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade‑off table: turns, parallel, guardrails etc -->
+    <div style="margin: 40px 0 15px;">
+        <span style="font-weight: 650; font-size: 1.6rem;">⚖️ Key trade‑offs & config impacts</span>
+    </div>
+    <table class="comparison-table">
+        <thead><tr><th>Configuration</th><th>Activate / High</th><th>Deactivate / Low</th></tr></thead>
+        <tbody>
+            <tr><td><strong>max_turns</strong> (Runner)</td><td>Allows complex multi‑step reasoning, may loop. Higher cost.</td><td>Faster, cheaper, may stop early (incomplete).</td></tr>
+            <tr><td><strong>parallel tool calls</strong> (default ON)</td><td>Faster execution, potential race conditions.</td><td>Sequential, deterministic, higher latency.</td></tr>
+            <tr><td><strong>input guardrails</strong></td><td>Safety, but adds latency. Tripwire can abort.</td><td>No validation, faster but risky.</td></tr>
+            <tr><td><strong>output guardrails</strong></td><td>Ensures response quality, may modify/filter.</td><td>Raw LLM output, less safe.</td></tr>
+            <tr><td><strong>approvals (_approvals)</strong></td><td>Human‑in‑loop, safe for sensitive tools.</td><td>Fully automated, may execute without oversight.</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Additional: LLM vs Tool vs Handoff (updated) -->
+    <div style="margin: 30px 0 15px;">
+        <span style="font-weight: 650; font-size: 1.5rem;">📊 Decision comparison</span>
+    </div>
+    <table class="comparison-table">
+        <thead><tr><th>Feature</th><th>LLM Call</th><th>Tool Call</th><th>Handoff</th></tr></thead>
+        <tbody>
+            <tr><td>Purpose</td><td>Generate text</td><td>Execute function</td><td>Switch agent</td></tr>
+            <tr><td>Controlled by</td><td>Model</td><td>Model + Runner</td><td>Model</td></tr>
+            <tr><td>External logic</td><td>❌</td><td>✅</td><td>❌</td></tr>
+            <tr><td>Multi‑agent</td><td>❌</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Default behavior</td><td>single response</td><td>parallel (multiple)</td><td>switch agent</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Extra insight: real log reflection -->
+    <div class="insight-block" style="background: #d4e2f0;">
+        <i class="fas fa-clipboard-list"></i> 
+        <strong>From actual run:</strong> Input Guardrails → LLM → Final Output. <br>
+        ❌ No tool call · ❌ No handoff · ✅ simple extraction. That's why flow is minimal.
+    </div>
+
+    <!-- Compact: what happens if turn=2, tradeoff block -->
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; margin-top: 30px;">
+        <div style="flex: 2; min-width: 280px;">
+            <div style="background: #eef2f7; border-radius: 24px; padding: 24px;">
+                <h3><i class="fas fa-redo-alt"></i> Runner turns · if max_turns = 2</h3>
+                <p>Agent will execute <strong>up to 2 LLM calls</strong> (or tool loops). After 2 turns, it stops and returns final output.<br>
+                <strong>Trade‑off:</strong> Turn 2 may include a tool call that won't be processed if limit reached. Use higher turns for multi‑step workflows.</p>
+                <span class="badge">turn_input is updated each turn</span>
+            </div>
+        </div>
+        <div style="flex: 1.5; min-width: 240px;">
+            <div style="background: #f5ede1; border-radius: 24px; padding: 24px;">
+                <h3><i class="fas fa-cogs"></i> CPU‑bound sequential</h3>
+                <p>By default tools run in parallel. For CPU‑intensive or ordered ops, set <code>parallel_tool_calls=False</code> or use <code>run_llm_again</code> to enforce sequential.</p>
+                <p><i class="fas fa-exclamation-triangle"></i> Without explicit sequential, LLM may call tools simultaneously.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Takeaways -->
+    <div style="margin: 45px 0 20px; background: #ffffffd0; border-radius: 30px; padding: 28px; border: 1px solid #bdd2e8;">
+        <div style="font-size: 2rem; font-weight: 650;">🔑 Core takeaways</div>
+        <ul style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px; list-style: none;">
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>LLM decides</strong> — Runner executes.</li>
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>RunContextWrapper</strong> holds turn_input, usage tokens, approvals.</li>
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>Tools default parallel</strong> — force sequential for order/CPU.</li>
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>Guardrails are safety</strong> — input/output filters.</li>
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>Handoffs enable multi‑agent.</strong></li>
+            <li><i class="fas fa-check-circle" style="color:#1e6b4c;"></i> <strong>Trade‑offs:</strong> max_turns, parallel tools, approvals — balance cost/safety/speed.</li>
+        </ul>
+    </div>
+
+    <div class="footer-note">
+        ⚡ OpenAI Agents SDK · execution flow · token usage · turn behavior · tool parallelism — all inside blocks.
+    </div>
+</div>
+<script>
+    mermaid.initialize({ startOnLoad: true, theme: 'base', securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' } });
+</script>
+</body>
+</html>

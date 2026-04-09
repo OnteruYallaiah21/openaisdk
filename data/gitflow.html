@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Forking Workflow — Complete Visual Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --surface: #0d1117;
+  --surface2: #161b27;
+  --surface3: #1e2636;
+  --border: #252f40;
+  --border2: #2e3a50;
+  --text: #e8eeff;
+  --text2: #9aaac8;
+  --text3: #6478a0;
+  --accent-blue: #4d8fff;
+  --accent-cyan: #29d9c2;
+  --accent-purple: #a78bfa;
+  --accent-orange: #f5a623;
+  --accent-red: #ff5f7e;
+  --accent-green: #3dd68c;
+  --accent-yellow: #ffd166;
+  --upstream: #ff5f7e;
+  --origin: #f5a623;
+  --local: #3dd68c;
+  --feature: #a78bfa;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Figtree', sans-serif;
+  --display: 'Syne', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content:'';
+  position: fixed;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrap {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+  position:relative; z-index:1;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align:center;
+  padding: 5rem 2rem 3.5rem;
+  position: relative;
+}
+
+.hero::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:50%;
+  transform:translateX(-50%);
+  width:600px; height:1px;
+  background: linear-gradient(90deg, transparent, var(--border2), transparent);
+}
+
+.hero-tag {
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:0.7rem;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--accent-cyan);
+  border:1px solid var(--accent-cyan);
+  padding:0.3rem 1rem;
+  border-radius:2px;
+  margin-bottom:1.5rem;
+}
+
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fff 30%, #7aa2f7 70%, var(--accent-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 1rem;
+  letter-spacing: -1px;
+}
+
+.hero p {
+  color: var(--text2);
+  font-size: 1.1rem;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+}
+
+.badge-row {
+  display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center;
+}
+
+.badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.9rem;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+/* ── SECTION HEADERS ── */
+.section-label {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+
+.section-label h2 {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.section-num {
+  font-family:var(--mono);
+  font-size:0.7rem;
+  color:var(--accent-blue);
+  background: rgba(77,143,255,0.1);
+  border:1px solid rgba(77,143,255,0.3);
+  padding:0.2rem 0.6rem;
+  border-radius:3px;
+}
+
+.sep {
+  height:1px;
+  flex:1;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ── CARD BASE ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow:hidden;
+}
+
+.card-head {
+  background: var(--surface2);
+  padding: 0.9rem 1.3rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+}
+
+.card-body {
+  padding: 1.3rem;
+}
+
+/* ── 3-COL ENV GRID ── */
+.env-grid {
+  display:grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:1.2rem;
+  margin-bottom:2rem;
+}
+
+@media(max-width:900px){ .env-grid{ grid-template-columns:1fr; } }
+
+.env-card { border-radius:16px; overflow:hidden; border:1px solid; }
+
+.env-card.upstream { border-color: rgba(255,95,126,0.35); background: linear-gradient(160deg, #160c10, #0d1117); }
+.env-card.origin   { border-color: rgba(245,166,35,0.35);  background: linear-gradient(160deg, #151008, #0d1117); }
+.env-card.local    { border-color: rgba(61,214,140,0.35);  background: linear-gradient(160deg, #0b140f, #0d1117); }
+
+.env-head {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size:1rem;
+  display:flex; align-items:center; gap:0.6rem;
+}
+.upstream .env-head { color: var(--upstream); background: rgba(255,95,126,0.08); border-color:rgba(255,95,126,0.2); }
+.origin   .env-head { color: var(--origin);   background: rgba(245,166,35,0.08); border-color:rgba(245,166,35,0.2); }
+.local    .env-head { color: var(--local);    background: rgba(61,214,140,0.08); border-color:rgba(61,214,140,0.2); }
+
+.env-body { padding: 1rem 1.2rem; }
+
+.branch-pill {
+  display:inline-flex; align-items:center; gap:0.4rem;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  padding: 0.25rem 0.7rem;
+  border-radius:20px;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color: #bbd1ff;
+  margin: 0.2rem 0.2rem 0.2rem 0;
+}
+
+.pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.dot-main   { background:var(--accent-green); }
+.dot-branch { background:var(--accent-purple); }
+.dot-remote { background:var(--accent-blue); }
+
+.env-note {
+  font-size:0.73rem;
+  color:var(--text3);
+  margin-top:0.8rem;
+  font-family:var(--mono);
+  line-height:1.7;
+}
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius:16px;
+  padding: 2rem;
+  margin-bottom:2rem;
+  overflow-x:auto;
+}
+
+.flow-row {
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin-bottom:0.5rem;
+}
+
+.flow-box {
+  padding:0.6rem 1.2rem;
+  border-radius:8px;
+  font-family:var(--mono);
+  font-size:0.78rem;
+  font-weight:600;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.flow-box.up   { background:rgba(255,95,126,0.15); border:1px solid rgba(255,95,126,0.4); color:var(--upstream); }
+.flow-box.ori  { background:rgba(245,166,35,0.15); border:1px solid rgba(245,166,35,0.4); color:var(--origin); }
+.flow-box.loc  { background:rgba(61,214,140,0.15); border:1px solid rgba(61,214,140,0.4); color:var(--local); }
+.flow-box.feat { background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.4); color:var(--feature); }
+
+.flow-arrow {
+  padding: 0 0.8rem;
+  color:var(--text3);
+  font-family:var(--mono);
+  font-size:0.8rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1px;
+}
+
+.flow-arrow .cmd {
+  font-size:0.6rem;
+  color:var(--accent-blue);
+  white-space:nowrap;
+}
+
+/* ── COMMAND TABLE ── */
+.cmd-table-wrap {
+  overflow-x:auto;
+  margin-bottom:2rem;
+}
+
+table.cmd-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.82rem;
+}
+
+table.cmd-table thead th {
+  background:var(--surface2);
+  padding: 0.8rem 1rem;
+  text-align:left;
+  font-family:var(--display);
+  font-size:0.8rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border2);
+  white-space:nowrap;
+}
+
+table.cmd-table tbody tr {
+  border-bottom:1px solid var(--border);
+}
+
+table.cmd-table tbody tr:hover {
+  background: rgba(77,143,255,0.04);
+}
+
+table.cmd-table td {
+  padding: 0.8rem 1rem;
+  vertical-align:top;
+  line-height:1.55;
+}
+
+table.cmd-table td:first-child {
+  font-family:var(--mono);
+  font-size:0.75rem;
+  color:var(--accent-cyan);
+  white-space:nowrap;
+}
+
+.yes { color:var(--accent-green); font-weight:600; font-family:var(--mono); font-size:0.78rem; }
+.no  { color:var(--text3); font-family:var(--mono); font-size:0.78rem; }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: #010409;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.8;
+  overflow-x:auto;
+  white-space:pre;
+}
+
+.code-block .comment { color: var(--text3); }
+.code-block .cmd     { color: var(--accent-cyan); }
+.code-block .flag    { color: var(--accent-orange); }
+.code-block .output  { color: var(--accent-green); }
+.code-block .warn    { color: var(--accent-red); }
+.code-block .branch  { color: var(--accent-purple); }
+.code-block .remote  { color: var(--accent-yellow); }
+
+/* ── SCENARIO CARDS ── */
+.scenario {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+
+.scenario-head {
+  background:var(--surface2);
+  padding:0.9rem 1.3rem;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:0.8rem;
+}
+
+.scenario-num {
+  width:28px; height:28px;
+  border-radius:50%;
+  background:rgba(77,143,255,0.15);
+  border:1px solid rgba(77,143,255,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color:var(--accent-blue);
+  flex-shrink:0;
+}
+
+.scenario-head h3 {
+  font-family:var(--display);
+  font-size:0.95rem;
+  font-weight:700;
+}
+
+.scenario-body { padding:1.3rem; }
+
+/* ── 2-COL GRID ── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.2rem; }
+@media(max-width:900px){
+  .two-col { grid-template-columns:1fr; }
+  .three-col { grid-template-columns:1fr; }
+}
+
+/* ── COMPARE CARDS (merge vs rebase) ── */
+.compare-card {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1.1rem;
+}
+
+.compare-card h4 {
+  font-family:var(--display);
+  font-size:0.9rem;
+  font-weight:700;
+  margin-bottom:0.8rem;
+}
+
+.ascii-diagram {
+  background:#010409;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0.9rem;
+  font-family:var(--mono);
+  font-size:0.7rem;
+  line-height:1.7;
+  color:var(--text2);
+  overflow-x:auto;
+  white-space:pre;
+}
+
+/* ── ANSWER HIGHLIGHT ── */
+.answer {
+  background: rgba(61,214,140,0.06);
+  border-left:3px solid var(--accent-green);
+  border-radius:0 8px 8px 0;
+  padding:0.9rem 1.1rem;
+  margin:0.8rem 0;
+  font-size:0.88rem;
+}
+
+.warning-box {
+  background: rgba(255,95,126,0.07);
+  border-left:3px solid var(--upstream);
+  border-radius:0 8px 8px 0;
+  padding:0.9rem 1.1rem;
+  margin:0.8rem 0;
+  font-size:0.85rem;
+}
+
+.info-box {
+  background: rgba(77,143,255,0.07);
+  border-left:3px solid var(--accent-blue);
+  border-radius:0 8px 8px 0;
+  padding:0.9rem 1.1rem;
+  margin:0.8rem 0;
+  font-size:0.85rem;
+}
+
+/* ── STEP LIST ── */
+.steps { display:flex; flex-direction:column; gap:0.8rem; }
+
+.step {
+  display:flex;
+  gap:1rem;
+  align-items:flex-start;
+}
+
+.step-badge {
+  width:30px; height:30px;
+  border-radius:8px;
+  background: rgba(77,143,255,0.12);
+  border:1px solid rgba(77,143,255,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  font-weight:600;
+  color:var(--accent-blue);
+  flex-shrink:0;
+}
+
+.step-content {
+  flex:1;
+  font-size:0.875rem;
+  padding-top:0.3rem;
+}
+
+.step-content strong { color:var(--text); }
+.step-content .inline-cmd {
+  font-family:var(--mono);
+  font-size:0.75rem;
+  background:var(--surface2);
+  padding:0.15rem 0.5rem;
+  border-radius:4px;
+  color:var(--accent-cyan);
+  border:1px solid var(--border2);
+}
+
+.step-note {
+  font-size:0.72rem;
+  color:var(--text3);
+  margin-top:0.3rem;
+  font-family:var(--mono);
+}
+
+/* ── SECTION SPACER ── */
+.section { margin-bottom:3rem; }
+
+/* ── CONCLUSION ── */
+.conclusion {
+  background: linear-gradient(135deg, rgba(77,143,255,0.08), rgba(41,217,194,0.08));
+  border:1px solid rgba(77,143,255,0.25);
+  border-radius:16px;
+  padding:2rem;
+  text-align:center;
+}
+
+.conclusion h2 {
+  font-family:var(--display);
+  font-size:1.5rem;
+  font-weight:800;
+  margin-bottom:1rem;
+}
+
+.cheatsheet-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:0.6rem;
+  text-align:left;
+  margin-top:1.5rem;
+}
+
+@media(max-width:700px){ .cheatsheet-grid{grid-template-columns:1fr;} }
+
+.cheat-item {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0.7rem 0.9rem;
+  font-size:0.8rem;
+  display:flex;
+  gap:0.5rem;
+  align-items:flex-start;
+}
+
+.cheat-icon { font-size:1rem; flex-shrink:0; }
+
+/* ── QUICK-REF PILL ROW ── */
+.pill-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.5rem;
+  margin-top:0.8rem;
+}
+
+.q-pill {
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:0.2rem 0.75rem;
+  font-family:var(--mono);
+  font-size:0.7rem;
+  color:var(--text2);
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family:var(--mono);
+  font-size:0.82em;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  padding:0.1rem 0.4rem;
+  border-radius:4px;
+  color:var(--accent-cyan);
+}
+
+/* ── STICKY NAV ── */
+.toc {
+  position:sticky;
+  top:1rem;
+  background: rgba(13,17,23,0.85);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1rem;
+  font-family:var(--mono);
+  font-size:0.7rem;
+  line-height:2;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2) 20%,var(--border2) 80%,transparent);
+  margin:2.5rem 0;
+}
+
+/* ── MAPPING VISUAL ── */
+.mapping-row {
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  margin-bottom:0.5rem;
+  flex-wrap:wrap;
+}
+
+.m-box {
+  padding:0.35rem 0.9rem;
+  border-radius:6px;
+  font-family:var(--mono);
+  font-size:0.75rem;
+  font-weight:600;
+}
+.m-local  { background:rgba(61,214,140,0.12); border:1px solid rgba(61,214,140,0.4); color:var(--local); }
+.m-remote { background:rgba(255,95,126,0.12); border:1px solid rgba(255,95,126,0.4); color:var(--upstream); }
+.m-origin { background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.4); color:var(--origin); }
+.m-arr    { color:var(--text3); font-family:var(--mono); font-size:0.9rem; }
+.m-desc   { color:var(--text2); font-size:0.78rem; }
+
+/* ── highlight chip ── */
+.chip {
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:0.68rem;
+  padding:0.15rem 0.55rem;
+  border-radius:3px;
+  font-weight:600;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+.chip-green  { background:rgba(61,214,140,0.15); color:var(--accent-green); }
+.chip-red    { background:rgba(255,95,126,0.15); color:var(--upstream); }
+.chip-blue   { background:rgba(77,143,255,0.15); color:var(--accent-blue); }
+.chip-orange { background:rgba(245,166,35,0.15); color:var(--origin); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Complete Reference · Git Forking Workflow</div>
+  <h1>Upstream → Fork → Local<br>The Full Picture</h1>
+  <p>Every command. Every environment. Real terminal output. With the example project <strong style="color:var(--accent-cyan)">AI_Agents</strong> — so you can follow along exactly.</p>
+  <div class="badge-row">
+    <span class="badge">🏢 upstream: company/AI_Agents</span>
+    <span class="badge">🍴 origin: maheswar/AI_Agents</span>
+    <span class="badge">💻 local: ~/projects/AI_Agents</span>
+    <span class="badge">⚡ fork only main + one branch</span>
+    <span class="badge">🔁 rebase over merge</span>
+    <span class="badge">🔀 fetch ≠ pull</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ──────────────────────────────── SECTION 0: OVERVIEW ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">00</span>
+    <h2>The Three Environments — What Each Is</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="env-grid">
+    <div class="env-card upstream">
+      <div class="env-head">🏢 UPSTREAM — Company Repo</div>
+      <div class="env-body">
+        <div style="color:var(--text2);font-size:0.82rem;margin-bottom:0.8rem;">
+          <strong style="color:var(--upstream)">github.com/company/AI_Agents</strong><br>
+          The official, canonical codebase. You have <em>read-only</em> access. No direct push allowed — only Pull Requests.
+        </div>
+        <div class="branch-pill"><span class="pill-dot dot-main"></span>main</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>feature/llm-router</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>dev/api-refactor</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>release/v2</div>
+        <div class="env-note">🔒 No direct push. Only via PR review.<br>📡 You READ from here using git fetch.</div>
+      </div>
+    </div>
+
+    <div class="env-card origin">
+      <div class="env-head">🍴 ORIGIN — Your Fork</div>
+      <div class="env-body">
+        <div style="color:var(--text2);font-size:0.82rem;margin-bottom:0.8rem;">
+          <strong style="color:var(--origin)">github.com/maheswar/AI_Agents</strong><br>
+          A <em>copy</em> of the upstream repo under your account. You have full write access. Created by clicking "Fork" on GitHub.
+        </div>
+        <div class="branch-pill"><span class="pill-dot dot-main"></span>main (synced from upstream)</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>feature/llm-router (fetched on demand)</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>feat/payment-fix (your work)</div>
+        <div class="env-note">✅ Full push access — this is your sandbox.<br>💡 GitHub forks only "main" by default.</div>
+      </div>
+    </div>
+
+    <div class="env-card local">
+      <div class="env-head">💻 LOCAL — Your Machine</div>
+      <div class="env-body">
+        <div style="color:var(--text2);font-size:0.82rem;margin-bottom:0.8rem;">
+          <strong style="color:var(--local)">~/projects/AI_Agents</strong><br>
+          A clone of your fork (origin). Your working directory. Two remote pointers are configured here.
+        </div>
+        <div class="branch-pill"><span class="pill-dot dot-main"></span>main (local, tracks origin/main)</div>
+        <div class="branch-pill"><span class="pill-dot dot-branch"></span>feat/payment-fix (your feature)</div>
+        <div class="branch-pill"><span class="pill-dot dot-remote"></span>remotes/upstream/main (pointer)</div>
+        <div class="branch-pill"><span class="pill-dot dot-remote"></span>remotes/origin/main (pointer)</div>
+        <div class="env-note">💻 Actual files live here.<br>🔗 Remotes: "origin" + "upstream"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 1: SETUP ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">01</span>
+    <h2>Initial Setup — Fork, Clone, Add Upstream (with real output)</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="info-box">
+    <strong>📌 Our example:</strong> Company repo is <code>github.com/company/AI_Agents</code>. Your GitHub username is <code>maheswar</code>. You want to fork <code>main</code> AND <code>feature/llm-router</code>.
+  </div>
+
+  <!-- STEP 1: Fork -->
+  <div class="scenario" style="margin-top:1.2rem;">
+    <div class="scenario-head">
+      <div class="scenario-num">①</div>
+      <h3>Fork the repo — Click "Fork" on GitHub UI</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="two-col">
+        <div>
+          <p style="font-size:0.85rem;color:var(--text2);margin-bottom:0.8rem;">Go to <code>github.com/company/AI_Agents</code> → Click <strong>Fork</strong> → Select your account → Click <strong>Create fork</strong>.</p>
+          <div class="warning-box">
+            <strong>⚠️ Default: GitHub only copies the <code>main</code> branch.</strong><br>
+            The checkbox "Copy the DEFAULT branch only" is checked by default.<br>
+            Uncheck it only if you need ALL branches mirrored — rarely needed.
+          </div>
+          <div class="answer">
+            <strong>✅ Best practice:</strong> Keep the default (copy only main). Fetch other branches on demand when needed. This keeps your fork lightweight.
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.78rem;color:var(--text2);margin-bottom:0.6rem;font-family:var(--mono);">WHAT HAPPENS IN EACH ENVIRONMENT:</div>
+          <table class="cmd-table">
+            <thead><tr><th>Environment</th><th>Change?</th></tr></thead>
+            <tbody>
+              <tr><td>Upstream</td><td>None — read only</td></tr>
+              <tr><td>Origin (fork)</td><td class="yes">✅ Created! maheswar/AI_Agents with only "main"</td></tr>
+              <tr><td>Local</td><td class="no">None — nothing on your machine yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Clone -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">②</div>
+      <h3>Clone your fork to local machine</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Clone YOUR fork (origin) — not the company repo</span>
+<span class="cmd">git clone https://github.com/maheswar/AI_Agents.git</span>
+<span class="cmd">cd AI_Agents</span>
+
+<span class="comment"># ─── REAL OUTPUT YOU WILL SEE ───────────────────────────────</span>
+<span class="output">Cloning into 'AI_Agents'...
+remote: Enumerating objects: 452, done.
+remote: Counting objects: 100% (452/452), done.
+remote: Compressing objects: 100% (201/201), done.
+remote: Total 452 (delta 198), reused 420 (delta 170), pack-reused 0
+Receiving objects: 100% (452/452), 3.82 MiB | 4.1 MiB/s, done.
+Resolving deltas: 100% (198/198), done.</span>
+
+<span class="comment"># ─── CHECK: What remote was auto-configured? ────────────────</span>
+<span class="cmd">git remote -v</span>
+
+<span class="output">origin  https://github.com/maheswar/AI_Agents.git (fetch)
+origin  https://github.com/maheswar/AI_Agents.git (push)</span>
+
+<span class="comment"># ─── CHECK: Which branches exist locally? ───────────────────</span>
+<span class="cmd">git branch -a</span>
+
+<span class="output">* main                          ← you're on this (local branch)
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main            ← remote tracking ref</span>
+
+<span class="comment"># Note: Only "main" — no other branches yet. Correct!</span></div>
+
+      <div class="two-col" style="margin-top:1rem;">
+        <div>
+          <div style="font-size:0.78rem;color:var(--text2);margin-bottom:0.6rem;font-family:var(--mono);">WHAT HAPPENED IN EACH ENVIRONMENT:</div>
+          <table class="cmd-table">
+            <thead><tr><th>Environment</th><th>Change?</th></tr></thead>
+            <tbody>
+              <tr><td>Upstream</td><td class="no">None</td></tr>
+              <tr><td>Origin</td><td class="no">None — already existed</td></tr>
+              <tr><td>Local</td><td class="yes">✅ Full repo created at ~/AI_Agents<br>Working directory with files<br>"origin" remote configured auto</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="warning-box">
+          <strong>⚠️ Common mistake:</strong> Some people clone the <em>upstream</em> company repo directly. Don't do that — you won't be able to push. Always clone <em>your fork</em>.<br><br>
+          Clone fork → then add upstream remote separately.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Add upstream remote -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">③</div>
+      <h3>Add upstream remote — connect to company repo</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Add the company repo as "upstream" remote</span>
+<span class="cmd">git remote add upstream https://github.com/company/AI_Agents.git</span>
+
+<span class="comment"># ─── CHECK: Verify both remotes exist ───────────────────────</span>
+<span class="cmd">git remote -v</span>
+
+<span class="output">origin    https://github.com/maheswar/AI_Agents.git (fetch)    ← your fork
+origin    https://github.com/maheswar/AI_Agents.git (push)
+upstream  https://github.com/company/AI_Agents.git (fetch)     ← company repo
+upstream  https://github.com/company/AI_Agents.git (push)      ← read-only in practice</span>
+
+<span class="comment"># ─── NOTHING DOWNLOADED YET ─────────────────────────────────
+# "upstream" is just a pointer/label — no data fetched yet</span>
+
+<span class="cmd">git branch -a</span>
+<span class="output">* main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main</span>
+<span class="comment"># Still the same — no upstream/* refs until we fetch</span></div>
+
+      <div class="info-box" style="margin-top:0.8rem;">
+        <strong>🧠 Mental model:</strong> <code>git remote add upstream &lt;url&gt;</code> is like saving a contact number in your phone. The contact exists — but you haven't called yet. No data is downloaded until you run <code>git fetch upstream</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: Fetch upstream main -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">④</div>
+      <h3>Fetch only "main" from upstream — first sync</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Download upstream/main — safe, non-destructive</span>
+<span class="cmd">git fetch upstream main</span>
+
+<span class="output">From https://github.com/company/AI_Agents
+ * branch            main       -> FETCH_HEAD
+ * [new branch]      main       -> upstream/main</span>
+
+<span class="comment"># ─── CHECK: Now what branches/refs exist? ───────────────────</span>
+<span class="cmd">git branch -a</span>
+
+<span class="output">* main                            ← local branch (you're here)
+  remotes/origin/main             ← your fork's main
+  remotes/upstream/main           ← company's main (NEW!)</span>
+
+<span class="comment"># ─── CHECK: Is local main same as upstream/main? ────────────</span>
+<span class="cmd">git log --oneline -5</span>
+<span class="output">a3f82bc (HEAD -> main, origin/main, upstream/main) Add LLM router
+b912def Fix agent timeout bug
+c7180aa Initial agent scaffold</span>
+<span class="comment"># All three point to same commit — in sync!</span></div>
+
+      <div class="answer" style="margin-top:0.8rem;">
+        <strong>✅ Key insight:</strong> <code>git fetch upstream main</code> downloaded commits from the company repo and created a <em>remote tracking reference</em> called <code>upstream/main</code> in your local <code>.git</code> folder. Your local <code>main</code> branch did <strong>not change</strong> — only the pointer <code>remotes/upstream/main</code> was updated.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Fetch a specific branch from upstream -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">⑤</div>
+      <h3>Fetch "feature/llm-router" from upstream — second branch on demand</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Fetch a specific upstream branch without switching to it</span>
+<span class="cmd">git fetch upstream feature/llm-router</span>
+
+<span class="output">From https://github.com/company/AI_Agents
+ * branch            feature/llm-router -> FETCH_HEAD
+ * [new branch]      feature/llm-router -> upstream/feature/llm-router</span>
+
+<span class="comment"># Create a LOCAL branch that tracks it</span>
+<span class="cmd">git checkout -b feature/llm-router upstream/feature/llm-router</span>
+
+<span class="output">branch 'feature/llm-router' set up to track 'upstream/feature/llm-router'.
+Switched to a new branch 'feature/llm-router'</span>
+
+<span class="cmd">git branch -a</span>
+<span class="output">  main
+* feature/llm-router               ← now local, tracking upstream
+  remotes/origin/main
+  remotes/upstream/main
+  remotes/upstream/feature/llm-router</span>
+
+<span class="comment"># Push this branch to YOUR fork (origin) so it's backed up</span>
+<span class="cmd">git push -u origin feature/llm-router</span>
+<span class="output">Branch 'feature/llm-router' set up to track remote branch 'feature/llm-router' from 'origin'.
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/maheswar/AI_Agents.git
+ * [new branch]      feature/llm-router -> feature/llm-router</span></div>
+
+      <div class="two-col" style="margin-top:1rem;">
+        <div class="info-box">
+          <strong>🔗 Tracking explained:</strong><br>
+          After <code>-u origin feature/llm-router</code>, your local branch now tracks <code>origin/feature/llm-router</code>. Plain <code>git push</code> / <code>git pull</code> will know where to go.
+        </div>
+        <table class="cmd-table">
+          <thead><tr><th>Environment</th><th>After this step</th></tr></thead>
+          <tbody>
+            <tr><td>Upstream</td><td class="no">None (read only)</td></tr>
+            <tr><td>Origin</td><td class="yes">✅ feature/llm-router branch created</td></tr>
+            <tr><td>Local</td><td class="yes">✅ feature/llm-router branch created + tracking set</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 2: BRANCH TRACKING ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">02</span>
+    <h2>Branch Tracking — How Local Branches Map to Remotes</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">🔗 The Mapping: local branch ↔ remote tracking ref</div>
+    <div class="card-body">
+      <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1.2rem;">After setup, you have these mappings. Every local branch can track a remote ref — this is what tells <code>git push</code> / <code>git pull</code> where to go without specifying the remote explicitly.</p>
+
+      <div class="mapping-row">
+        <span class="m-box m-local">local: main</span>
+        <span class="m-arr">══════════▶</span>
+        <span class="m-box m-origin">origin/main</span>
+        <span class="m-arr">──</span>
+        <span class="m-desc">Your fork's main (push/pull default)</span>
+      </div>
+      <div class="mapping-row">
+        <span class="m-box m-local">local: main</span>
+        <span class="m-arr">── (for sync only) ──▶</span>
+        <span class="m-box m-remote">upstream/main</span>
+        <span class="m-arr">──</span>
+        <span class="m-desc">Used with <code>git rebase upstream/main</code> — not auto-tracked</span>
+      </div>
+      <div class="mapping-row">
+        <span class="m-box m-local">local: feature/llm-router</span>
+        <span class="m-arr">══════════▶</span>
+        <span class="m-box m-origin">origin/feature/llm-router</span>
+        <span class="m-arr">──</span>
+        <span class="m-desc">Your fork's branch (your work pushes here)</span>
+      </div>
+      <div class="mapping-row">
+        <span class="m-box m-local">local: feat/payment-fix</span>
+        <span class="m-arr">══════════▶</span>
+        <span class="m-box m-origin">origin/feat/payment-fix</span>
+        <span class="m-arr">──</span>
+        <span class="m-desc">Created by: <code>git push -u origin feat/payment-fix</code></span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="code-block"><span class="comment"># ─── CHECK: see all tracking relationships ──────────────────</span>
+<span class="cmd">git branch -vv</span>
+
+<span class="output">* main                  a3f82bc [origin/main] Add LLM router
+  feature/llm-router    c7d9e11 [origin/feature/llm-router] Refactor router
+  feat/payment-fix      e4f2b3a [origin/feat/payment-fix: ahead 3] Add validation</span>
+
+<span class="comment"># "ahead 3" = you have 3 commits not yet pushed to origin
+# "behind 2" would mean origin has 2 commits you haven't pulled yet</span>
+
+<span class="comment"># ─── CHECK: see upstream/main commit vs local main ──────────</span>
+<span class="cmd">git log --oneline --decorate -8</span>
+
+<span class="output">e4f2b3a (HEAD -> feat/payment-fix) Add validation logic
+d9c1a2f Fix edge case in payment flow
+a3f82bc (origin/main, upstream/main, main) Add LLM router
+b912def Fix agent timeout bug
+c7180aa Initial agent scaffold</span>
+
+<span class="comment"># Reading this:
+# HEAD is on feat/payment-fix (3 commits ahead of main)
+# main, origin/main, upstream/main all point to a3f82bc → all in sync</span></div>
+
+      <div class="warning-box" style="margin-top:0.8rem;">
+        <strong>⚠️ upstream/main ≠ local main (they are DIFFERENT things)</strong><br>
+        <code>upstream/main</code> = a <em>read-only pointer</em> stored in <code>.git/refs/remotes/upstream/main</code>. It shows where the company's repo is.<br>
+        <code>main</code> = your <em>local branch</em>. It won't move just because you fetched.<br>
+        You must explicitly <code>git rebase upstream/main</code> or <code>git merge upstream/main</code> to move your local main forward.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 3: FETCH DEEP DIVE ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">03</span>
+    <h2>git fetch — The Big Question: Can I run it from any branch?</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="answer" style="font-size:0.95rem;margin-bottom:1.5rem;">
+    <strong>✅ YES — you can run <code>git fetch upstream</code> from ANY branch you're on.</strong><br>
+    It is purely a download operation. It NEVER changes your working directory, NEVER changes your current branch, NEVER merges anything.
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">?</div>
+      <h3>Scenario: You're on "feat/payment-fix" and upstream/main got new commits</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># You're in the middle of your feature work</span>
+<span class="cmd">git branch</span>
+<span class="output">  main
+* feat/payment-fix    ← you are here</span>
+
+<span class="comment"># A colleague just merged a PR to upstream/main.
+# You want to download those changes WITHOUT stopping your work.
+# ✅ Safe to run from feat/payment-fix:</span>
+
+<span class="cmd">git fetch upstream</span>
+
+<span class="output">remote: Enumerating objects: 8, done.
+remote: Counting objects: 100% (8/8), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 8 (delta 3), reused 0 (delta 0), pack-reused 0
+Unpacking objects: 100% (8/8), 3.21 KiB | 655.00 KiB/s, done.
+From https://github.com/company/AI_Agents
+   a3f82bc..d91c443  main -> upstream/main</span>
+
+<span class="comment"># ─── WHAT CHANGED? ──────────────────────────────────────────</span>
+<span class="cmd">git branch</span>
+<span class="output">  main
+* feat/payment-fix    ← STILL HERE. Nothing changed.</span>
+
+<span class="cmd">git status</span>
+<span class="output">On branch feat/payment-fix
+Your branch is up to date with 'origin/feat/payment-fix'.
+nothing to commit, working tree clean</span>
+
+<span class="comment"># Working directory: UNCHANGED. Your code: UNTOUCHED.</span>
+<span class="comment"># Only thing that updated = the remote tracking reference upstream/main</span>
+
+<span class="cmd">git log --oneline --decorate -6</span>
+<span class="output">e4f2b3a (HEAD -> feat/payment-fix) Add validation logic
+d9c1a2f Fix edge case in payment flow
+a3f82bc (origin/main, main) Add LLM router    ← main still at old commit
+d91c443 (upstream/main) Fix token refresh bug ← upstream moved forward!
+b912def Fix agent timeout bug
+c7180aa Initial agent scaffold</span>
+
+<span class="comment"># See: upstream/main is at d91c443 but local main is at a3f82bc
+# That's fine — you fetched safely. Continue your work.</span></div>
+
+      <div class="three-col" style="margin-top:1rem;">
+        <div class="compare-card">
+          <h4 style="color:var(--upstream);">🏢 Upstream</h4>
+          <div class="ascii-diagram">Before: a3f82bc
+After:  d91c443
+(moved forward — 
+new commits merged)</div>
+        </div>
+        <div class="compare-card">
+          <h4 style="color:var(--origin);">🍴 Origin (your fork)</h4>
+          <div class="ascii-diagram">Before: a3f82bc
+After:  a3f82bc
+(UNCHANGED — fetch
+doesn't touch origin)</div>
+        </div>
+        <div class="compare-card">
+          <h4 style="color:var(--local);">💻 Local</h4>
+          <div class="ascii-diagram">Before: upstream/main → a3f82bc
+After:  upstream/main → d91c443
+(remote ref updated)
+
+local/main: a3f82bc (UNCHANGED)
+feat/payment-fix: e4f2b3a (UNCHANGED)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- fetch vs pull vs rebase table -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-head">📋 Fetch vs Pull vs Pull --rebase — Exact Comparison</div>
+    <div class="card-body">
+      <div class="cmd-table-wrap">
+        <table class="cmd-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Working Dir changed?</th>
+              <th>Local branch moved?</th>
+              <th>Merge commit created?</th>
+              <th>History shape</th>
+              <th>When to use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>git fetch upstream</td>
+              <td class="no">❌ No</td>
+              <td class="no">❌ No</td>
+              <td class="no">❌ No</td>
+              <td>No change</td>
+              <td>Safely download — peek at what changed. Run anytime.</td>
+            </tr>
+            <tr>
+              <td>git merge upstream/main</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes (merge commit M)</td>
+              <td>Non-linear (bubble)</td>
+              <td>Merging long-lived/shared branches. Safer for teams.</td>
+            </tr>
+            <tr>
+              <td>git rebase upstream/main</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes (replayed)</td>
+              <td class="no">❌ No</td>
+              <td>Linear (clean)</td>
+              <td>Feature branches before PR. Preferred in most companies.</td>
+            </tr>
+            <tr>
+              <td>git pull upstream main</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td>Non-linear</td>
+              <td>Quick update on private branch. Creates merge noise.</td>
+            </tr>
+            <tr>
+              <td>git pull --rebase upstream main</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ No</td>
+              <td>Linear</td>
+              <td>Best of both: download + rebase in one. Use this daily.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box" style="margin-top:1rem;">
+        <strong>💡 Pro tip:</strong> Set this globally once: <code>git config --global pull.rebase true</code><br>
+        Now every <code>git pull</code> automatically behaves like <code>git pull --rebase</code>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 4: MERGE vs REBASE VISUAL ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">04</span>
+    <h2>Merge vs Rebase — Visual Commit History Difference</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="compare-card">
+      <h4>🔀 git merge upstream/main — creates a merge bubble</h4>
+      <div class="ascii-diagram">BEFORE:
+upstream/main:  A ─── B ─── C ─── D
+                              \
+your feature:                  X ─── Y (your commits)
+
+AFTER git merge upstream/main:
+upstream/main:  A ─── B ─── C ─── D
+                              \         \
+your feature:                  X ─── Y ── M  ← merge commit M
+
+git log --oneline:
+M  Merge branch 'upstream/main' into feat/payment-fix  ← extra noise
+Y  Add validation logic
+X  Fix edge case
+D  Fix token refresh bug  (from upstream)
+C  Add LLM router
+...</div>
+      <div class="warning-box" style="margin-top:0.8rem;font-size:0.8rem;">
+        ⚠️ Creates a <strong>merge commit M</strong> that has two parents. History looks like a river delta. Can get messy over many syncs.
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <h4>✨ git rebase upstream/main — linear, clean</h4>
+      <div class="ascii-diagram">BEFORE:
+upstream/main:  A ─── B ─── C ─── D
+                              \
+your feature:                  X ─── Y (your commits)
+
+AFTER git rebase upstream/main:
+upstream/main:  A ─── B ─── C ─── D
+                                    \
+your feature:                        X' ─── Y'  ← replayed!
+
+git log --oneline:
+Y'  Add validation logic         (new hash, same changes)
+X'  Fix edge case                (new hash, same changes)
+D   Fix token refresh bug        (from upstream)
+C   Add LLM router
+...</div>
+      <div class="answer" style="margin-top:0.8rem;font-size:0.8rem;">
+        ✅ Your commits X, Y are <strong>replayed</strong> on top of D (latest upstream). No merge commit. History reads as one clean line. PRs are easier to review.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-head">🔬 Full rebase walkthrough with real output</div>
+    <div class="card-body">
+      <div class="code-block"><span class="comment"># You're on feat/payment-fix. Upstream moved forward.</span>
+<span class="comment"># Step 1: Download latest upstream</span>
+<span class="cmd">git fetch upstream</span>
+<span class="output">From https://github.com/company/AI_Agents
+   a3f82bc..d91c443  main -> upstream/main</span>
+
+<span class="comment"># Step 2: See how far ahead upstream is</span>
+<span class="cmd">git log --oneline upstream/main ^feat/payment-fix</span>
+<span class="output">d91c443 Fix token refresh bug   ← upstream has this, you don't</span>
+
+<span class="comment"># Step 3: Rebase your feature on top of upstream/main</span>
+<span class="cmd">git rebase upstream/main</span>
+<span class="output">Successfully rebased and updated refs/heads/feat/payment-fix.
+</span>
+<span class="comment"># ─── If conflict happens ─────────────────────────────────────</span>
+<span class="output">Auto-merging agents/payment_agent.py
+CONFLICT (content): Merge conflict in agents/payment_agent.py
+error: could not apply e4f2b3a... Add validation logic
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm &lt;conflicted_files&gt;", then run "git rebase --continue".</span>
+
+<span class="comment"># Fix the conflicted file, then:</span>
+<span class="cmd">git add agents/payment_agent.py</span>
+<span class="cmd">git rebase --continue</span>
+<span class="output">Successfully rebased and updated refs/heads/feat/payment-fix.</span>
+
+<span class="comment"># Step 4: Force-push to your fork (hash changed after rebase)</span>
+<span class="cmd">git push origin feat/payment-fix --force-with-lease</span>
+<span class="output">Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 1.23 KiB | 1.23 MiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0
+To https://github.com/maheswar/AI_Agents.git
+ + e4f2b3a...f91b2cc feat/payment-fix -> feat/payment-fix (forced update)</span>
+
+<span class="comment"># "+" before hash = force push happened. "forced update" = expected.</span></div>
+
+      <div class="info-box" style="margin-top:0.8rem;">
+        <strong>🛡️ --force-with-lease vs --force:</strong><br>
+        <code>--force</code> = blindly overwrite remote. Dangerous if a teammate pushed to your branch.<br>
+        <code>--force-with-lease</code> = only overwrite if remote hasn't moved since your last fetch. Safe. Always use this.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 5: COMPLETE COMMAND TABLE ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">05</span>
+    <h2>Complete Command Reference — What changes where</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">📡 Every command → Effect in each environment</div>
+    <div class="card-body">
+      <div class="cmd-table-wrap">
+        <table class="cmd-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>📍 LOCAL changes</th>
+              <th>🍴 ORIGIN changes</th>
+              <th>🏢 UPSTREAM changes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>git clone &lt;origin-url&gt;</td>
+              <td>Creates local repo + working dir + "origin" remote auto-configured</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git remote add upstream &lt;url&gt;</td>
+              <td>Adds upstream pointer in .git/config. No data yet.</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git fetch upstream</td>
+              <td>Downloads commits → updates <strong>upstream/main</strong> ref. Local branches unchanged. Working dir unchanged.</td>
+              <td class="no">None</td>
+              <td class="no">None (read-only)</td>
+            </tr>
+            <tr>
+              <td>git fetch upstream feature/llm-router</td>
+              <td>Downloads specific branch → creates <strong>upstream/feature/llm-router</strong> ref locally</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git merge upstream/main</td>
+              <td>Creates <strong>merge commit M</strong> on current branch. Non-linear history. Files change.</td>
+              <td class="no">None (until push)</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git rebase upstream/main</td>
+              <td>Replays local commits on top of upstream/main. New hashes. Linear history. Files may change.</td>
+              <td class="no">None (until push)</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git pull --rebase upstream main</td>
+              <td>= fetch + rebase. Downloads + replays commits. Safest daily sync.</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git checkout -b feat/payment-fix</td>
+              <td>Creates new local branch from current HEAD</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git add . && git commit -m "..."</td>
+              <td>Creates new commit on current local branch</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git push origin feat/payment-fix</td>
+              <td class="no">None</td>
+              <td>Creates / updates feat/payment-fix branch with your commits</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git push origin main --force-with-lease</td>
+              <td class="no">None</td>
+              <td>Updates origin/main safely (only if remote hasn't moved)</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>Open Pull Request (GitHub UI)</td>
+              <td class="no">None</td>
+              <td class="no">None (PR is just a request)</td>
+              <td class="no">None — until PR is approved + merged</td>
+            </tr>
+            <tr>
+              <td>PR merged on GitHub</td>
+              <td class="no">None (you need to fetch)</td>
+              <td class="no">None (until you push)</td>
+              <td>✅ Your commits are now in upstream/main</td>
+            </tr>
+            <tr>
+              <td>git branch -d feat/payment-fix</td>
+              <td>Deletes local branch (commits still in git history)</td>
+              <td class="no">None</td>
+              <td class="no">None</td>
+            </tr>
+            <tr>
+              <td>git push origin --delete feat/payment-fix</td>
+              <td class="no">None</td>
+              <td>Deletes feature branch from your fork</td>
+              <td class="no">None</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 6: REAL SCENARIOS ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">06</span>
+    <h2>Real-Time Scenarios — Exactly What to Type</h2>
+    <div class="sep"></div>
+  </div>
+
+  <!-- SCENARIO A -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">A</div>
+      <h3>Scenario A: Morning sync — start fresh every day</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># ─── MORNING ROUTINE ─────────────────────────────────────────</span>
+
+<span class="comment"># 1. Switch to local main</span>
+<span class="cmd">git checkout main</span>
+<span class="output">Switched to branch 'main'
+Your branch is up to date with 'origin/main'.</span>
+
+<span class="comment"># 2. Download latest from company repo</span>
+<span class="cmd">git fetch upstream</span>
+<span class="output">From https://github.com/company/AI_Agents
+   a3f82bc..d91c443  main -> upstream/main</span>
+
+<span class="comment"># 3. Rebase local main onto upstream/main (move main forward)</span>
+<span class="cmd">git rebase upstream/main</span>
+<span class="output">Successfully rebased and updated refs/heads/main.</span>
+
+<span class="comment"># 4. Push updated main to your fork</span>
+<span class="cmd">git push origin main</span>
+<span class="output">Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/maheswar/AI_Agents.git
+   a3f82bc..d91c443  main -> main</span>
+
+<span class="comment"># ─── VERIFY: All 3 in sync ───────────────────────────────────</span>
+<span class="cmd">git log --oneline --decorate -3</span>
+<span class="output">d91c443 (HEAD -> main, origin/main, upstream/main) Fix token refresh bug
+a3f82bc Add LLM router
+b912def Fix agent timeout bug</span>
+<span class="comment"># ✅ All three refs point to same commit = perfect sync</span></div>
+    </div>
+  </div>
+
+  <!-- SCENARIO B -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">B</div>
+      <h3>Scenario B: Start new feature branch from synced main</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># After morning sync, create a fresh feature branch</span>
+<span class="cmd">git checkout -b feat/agent-memory</span>
+<span class="output">Switched to a new branch 'feat/agent-memory'</span>
+
+<span class="comment"># Do your work</span>
+<span class="cmd">echo "# Memory module" >> agents/memory.py</span>
+<span class="cmd">git add agents/memory.py</span>
+<span class="cmd">git commit -m "feat: add agent memory module scaffold"</span>
+<span class="output">[feat/agent-memory f2c9a11] feat: add agent memory module scaffold
+ 1 file changed, 1 insertion(+)</span>
+
+<span class="comment"># Push to your fork for backup</span>
+<span class="cmd">git push -u origin feat/agent-memory</span>
+<span class="output">Branch 'feat/agent-memory' set up to track remote branch 'feat/agent-memory' from 'origin'.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+To https://github.com/maheswar/AI_Agents.git
+ * [new branch]      feat/agent-memory -> feat/agent-memory</span></div>
+    </div>
+  </div>
+
+  <!-- SCENARIO C -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">C</div>
+      <h3>Scenario C: Upstream changed WHILE you're working on a feature</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="info-box">
+        <strong>Situation:</strong> You're on <code>feat/agent-memory</code> with 2 commits. A colleague merged a PR to upstream/main. You need to incorporate those changes.
+      </div>
+
+      <div class="code-block" style="margin-top:0.8rem;"><span class="comment"># You're on feat/agent-memory (your work in progress)</span>
+<span class="cmd">git log --oneline -4</span>
+<span class="output">f2c9a11 (HEAD -> feat/agent-memory) feat: add memory search
+e8d3b22 feat: add agent memory module scaffold
+d91c443 (upstream/main, origin/main, main) Fix token refresh bug</span>
+
+<span class="comment"># ─── Upstream just got 2 new commits ─────────────────────────
+# (another dev merged a PR while you were working)
+# Option 1: Fetch + rebase (RECOMMENDED)</span>
+<span class="cmd">git fetch upstream</span>
+<span class="output">From https://github.com/company/AI_Agents
+   d91c443..9b2c801  main -> upstream/main</span>
+
+<span class="cmd">git rebase upstream/main</span>
+<span class="output">Successfully rebased and updated refs/heads/feat/agent-memory.</span>
+
+<span class="cmd">git log --oneline -6</span>
+<span class="output">f2c9a11' (HEAD -> feat/agent-memory) feat: add memory search     ← replayed (new hash)
+e8d3b22' feat: add agent memory module scaffold                   ← replayed (new hash)
+9b2c801 (upstream/main) Add multi-agent orchestration             ← new upstream commit
+8a1f9c3 Improve token streaming                                   ← new upstream commit
+d91c443 (origin/main, main) Fix token refresh bug
+a3f82bc Add LLM router</span>
+
+<span class="comment"># Your 2 commits now sit ON TOP of the latest upstream. Clean!</span>
+<span class="comment"># Push to origin (force required since hashes changed after rebase)</span>
+<span class="cmd">git push origin feat/agent-memory --force-with-lease</span>
+<span class="output">To https://github.com/maheswar/AI_Agents.git
+ + e8d3b22...e8d3b22' feat/agent-memory -> feat/agent-memory (forced update)</span></div>
+
+      <div class="warning-box" style="margin-top:0.8rem;">
+        <strong>⚠️ If you get a conflict during rebase:</strong>
+      </div>
+      <div class="code-block"><span class="output">CONFLICT (content): Merge conflict in agents/memory.py
+error: could not apply f2c9a11... feat: add memory search</span>
+
+<span class="comment"># Open agents/memory.py, look for conflict markers:</span>
+<span class="output">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+# upstream's version of the code
+=======
+# your version of the code
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feat: add memory search</span>
+
+<span class="comment"># Edit the file to keep what you want, then:</span>
+<span class="cmd">git add agents/memory.py</span>
+<span class="cmd">git rebase --continue</span>
+<span class="output">Successfully rebased and updated refs/heads/feat/agent-memory.</span>
+
+<span class="comment"># If you want to ABORT the rebase and go back to before:</span>
+<span class="cmd">git rebase --abort</span>
+<span class="output">HEAD is now at f2c9a11 feat: add memory search</span></div>
+    </div>
+  </div>
+
+  <!-- SCENARIO D -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">D</div>
+      <h3>Scenario D: Accidentally committed to local main — how to undo</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Oops — you committed directly to main instead of a feature branch</span>
+<span class="cmd">git log --oneline -3</span>
+<span class="output">abc1234 (HEAD -> main) fix: emergency patch ← WRONG! shouldn't be on main
+d91c443 (upstream/main, origin/main) Fix token refresh bug
+...</span>
+
+<span class="comment"># Step 1: Create a branch to save your commit</span>
+<span class="cmd">git checkout -b feat/emergency-patch</span>
+<span class="output">Switched to a new branch 'feat/emergency-patch'</span>
+
+<span class="comment"># Step 2: Reset local main back to upstream/main</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git reset --hard upstream/main</span>
+<span class="output">HEAD is now at d91c443 Fix token refresh bug</span>
+
+<span class="comment"># Step 3: Verify main is clean</span>
+<span class="cmd">git log --oneline -2</span>
+<span class="output">d91c443 (HEAD -> main, upstream/main, origin/main) Fix token refresh bug
+a3f82bc Add LLM router</span>
+
+<span class="comment"># Step 4: Your commit is safe on feat/emergency-patch</span>
+<span class="cmd">git log --oneline feat/emergency-patch -3</span>
+<span class="output">abc1234 (feat/emergency-patch) fix: emergency patch   ← still here!
+d91c443 Fix token refresh bug
+...</span></div>
+    </div>
+  </div>
+
+  <!-- SCENARIO E: Open PR -->
+  <div class="scenario">
+    <div class="scenario-head">
+      <div class="scenario-num">E</div>
+      <h3>Scenario E: Open a Pull Request — final checklist</h3>
+    </div>
+    <div class="scenario-body">
+      <div class="code-block"><span class="comment"># Before raising a PR, ensure you're up to date with upstream</span>
+<span class="cmd">git fetch upstream</span>
+<span class="cmd">git rebase upstream/main</span>
+
+<span class="comment"># Push latest to your fork</span>
+<span class="cmd">git push origin feat/agent-memory --force-with-lease</span>
+
+<span class="comment"># ─── Now go to GitHub UI ──────────────────────────────────────
+# URL: github.com/maheswar/AI_Agents
+# Click: "Compare & pull request" (yellow banner)
+#
+# PR settings:
+#   base repository: company/AI_Agents    ← UPSTREAM
+#   base branch:     main                 ← target branch
+#   head repository: maheswar/AI_Agents   ← YOUR FORK
+#   compare branch:  feat/agent-memory    ← YOUR BRANCH
+#
+# ⚠️ NEVER raise PR from your "main" branch → upstream "main"
+# ✅ ALWAYS raise PR from a feature branch → upstream "main"</span>
+
+<span class="comment"># ─── After PR is merged ──────────────────────────────────────</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git fetch upstream</span>
+<span class="cmd">git rebase upstream/main</span>
+<span class="output">Successfully rebased and updated refs/heads/main.
+# Now your commit is in upstream + your local main reflects that</span>
+
+<span class="comment"># Cleanup</span>
+<span class="cmd">git branch -d feat/agent-memory</span>
+<span class="output">Deleted branch feat/agent-memory (was f2c9a11').</span>
+
+<span class="cmd">git push origin --delete feat/agent-memory</span>
+<span class="output">To https://github.com/maheswar/AI_Agents.git
+ - [deleted]         feat/agent-memory</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 7: DAILY WORKFLOW ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">07</span>
+    <h2>Daily Workflow — The Complete Cheat Sheet</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">📅 Complete day's workflow — copy and keep</div>
+    <div class="card-body">
+      <div class="code-block"><span class="comment">## ════════════════════════════════════════════════════════════ ##
+##  GIT FORKING WORKFLOW — DAILY CHEAT SHEET                   ##
+##  Project: AI_Agents | upstream: company | origin: maheswar  ##
+## ════════════════════════════════════════════════════════════ ##</span>
+
+<span class="comment">## ─── ONE-TIME SETUP ──────────────────────────────────────────</span>
+<span class="cmd">git clone https://github.com/maheswar/AI_Agents.git</span>
+<span class="cmd">cd AI_Agents</span>
+<span class="cmd">git remote add upstream https://github.com/company/AI_Agents.git</span>
+<span class="cmd">git remote -v</span>                    <span class="comment"># verify both remotes</span>
+
+<span class="comment">## ─── MORNING SYNC ─────────────────────────────────────────────</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git fetch upstream</span>               <span class="comment"># download upstream changes</span>
+<span class="cmd">git rebase upstream/main</span>         <span class="comment"># move local main forward</span>
+<span class="cmd">git push origin main</span>             <span class="comment"># sync your fork</span>
+
+<span class="comment">## ─── START FEATURE ────────────────────────────────────────────</span>
+<span class="cmd">git checkout -b feat/ticket-123</span>  <span class="comment"># branch from synced main</span>
+
+<span class="comment">## ─── WORK LOOP ────────────────────────────────────────────────</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "feat: describe what you did"</span>
+<span class="cmd">git push origin feat/ticket-123</span>  <span class="comment"># backup to your fork often</span>
+
+<span class="comment">## ─── MID-DAY SYNC (if upstream changed while you're working) ──</span>
+<span class="cmd">git fetch upstream</span>               <span class="comment"># safe — no changes to your work</span>
+<span class="cmd">git rebase upstream/main</span>         <span class="comment"># replay your commits on top</span>
+<span class="cmd">git push origin feat/ticket-123 --force-with-lease</span>
+
+<span class="comment">## ─── RAISE PULL REQUEST ───────────────────────────────────────</span>
+<span class="comment"># Go to: github.com/maheswar/AI_Agents</span>
+<span class="comment"># PR: maheswar/AI_Agents:feat/ticket-123 → company/AI_Agents:main</span>
+
+<span class="comment">## ─── AFTER PR MERGED ──────────────────────────────────────────</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git fetch upstream</span>
+<span class="cmd">git rebase upstream/main</span>
+<span class="cmd">git push origin main</span>
+<span class="cmd">git branch -d feat/ticket-123</span>
+<span class="cmd">git push origin --delete feat/ticket-123</span>
+
+<span class="comment">## ─── FETCH A SPECIFIC UPSTREAM BRANCH ON DEMAND ──────────────</span>
+<span class="cmd">git fetch upstream feature/llm-router</span>
+<span class="cmd">git checkout -b feature/llm-router upstream/feature/llm-router</span>
+<span class="cmd">git push -u origin feature/llm-router</span>
+
+<span class="comment">## ─── VERIFY COMMANDS ──────────────────────────────────────────</span>
+<span class="cmd">git remote -v</span>                    <span class="comment"># see remotes</span>
+<span class="cmd">git branch -a</span>                    <span class="comment"># all local + remote branches</span>
+<span class="cmd">git branch -vv</span>                   <span class="comment"># tracking relationships</span>
+<span class="cmd">git log --oneline --decorate -8</span>  <span class="comment"># commit graph</span>
+<span class="cmd">git status</span>                       <span class="comment"># working dir state</span>
+<span class="cmd">git diff upstream/main</span>           <span class="comment"># diff your branch vs upstream</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 8: DO vs DON'T ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">08</span>
+    <h2>Industry Best Practices — Do vs Don't</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head" style="color:var(--accent-green);">✅ Always Do This</div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Fork only main branch</strong> — fetch other branches on demand with <code>git fetch upstream &lt;branch-name&gt;</code>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Set upstream immediately</strong> after cloning. Do it before writing any code.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Always work on feature branches</strong>, never directly on main.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Rebase before raising PR</strong> — clean linear history makes reviews easier.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Use <code>--force-with-lease</code></strong> — never bare <code>--force</code>.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Sync with upstream daily</strong> — don't let your fork drift weeks behind.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--accent-green);">✓</div>
+            <div class="step-content">
+              <strong>Clean up branches after merge</strong> — delete local + remote feature branches.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head" style="color:var(--upstream);">❌ Never Do This</div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never commit directly to local main</strong> — it should always mirror upstream/main.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never clone the upstream repo directly</strong> — clone your fork, add upstream as remote.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never open PR from your main branch</strong> — always from a named feature branch.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never use bare <code>--force</code></strong> — if remote has new commits, you'll overwrite someone's work.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never rebase a shared/public branch</strong> — rebase rewrites history, breaks others.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never fork all branches</strong> — your fork becomes heavy and unmanageable.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-badge" style="background:rgba(255,95,126,0.1);border-color:rgba(255,95,126,0.3);color:var(--upstream);">✗</div>
+            <div class="step-content">
+              <strong>Never raise PR without syncing upstream</strong> — stale PRs are painful to review.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── SECTION 9: FLOW DIAGRAM ──────────────────────────────── -->
+<div class="section">
+  <div class="section-label">
+    <span class="section-num">09</span>
+    <h2>Complete System Flow — How Data Moves</h2>
+    <div class="sep"></div>
+  </div>
+
+  <div class="flow-diagram">
+    <div style="font-family:var(--mono);font-size:0.78rem;line-height:2.2;color:var(--text2);">
+      <div style="text-align:center;margin-bottom:1.5rem;font-family:var(--display);font-size:1.1rem;color:var(--text);">Data Flow: Upstream ↔ Fork ↔ Local ↔ Feature</div>
+      <div style="overflow-x:auto;">
+<pre style="font-family:var(--mono);font-size:0.72rem;line-height:1.9;color:var(--text2);">
+<span style="color:var(--upstream);">🏢 UPSTREAM</span> (company/AI_Agents)
+    │
+    │  ← git fetch upstream         [read from upstream into local refs]
+    │  → Pull Request merged         [your commits land in upstream]
+    │
+<span style="color:var(--origin);">🍴 ORIGIN</span>   (maheswar/AI_Agents)
+    │
+    │  ← git clone                  [copy to local]
+    │  → git push origin main        [sync fork's main]
+    │  → git push origin feat/xyz    [backup your feature branch]
+    │  ← (not typically pulled from — read via tracking refs)
+    │
+<span style="color:var(--local);">💻 LOCAL</span>    (~/projects/AI_Agents)
+    │  └─ main                       (tracks origin/main)
+    │  └─ feat/xyz                   (tracks origin/feat/xyz)
+    │  └─ remotes/upstream/main      (remote tracking ref — read only pointer)
+    │  └─ remotes/origin/main        (remote tracking ref)
+    │
+    │  OPERATIONS:
+    │  git checkout -b feat/xyz      [creates local feature branch]
+    │  git rebase upstream/main      [moves branch on top of latest upstream]
+    │  git fetch upstream            [safe download, no local changes]
+    │
+<span style="color:var(--feature);">🌱 FEATURE</span>  (local feat/xyz → pushed to origin/feat/xyz → PR to upstream/main)
+</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="three-col" style="margin-top:1.2rem;">
+    <div class="compare-card">
+      <h4 style="color:var(--local);">💻 local → origin</h4>
+      <div class="ascii-diagram">Command: git push origin &lt;branch&gt;
+Direction: Local → Your Fork
+When: After commits + rebase
+Required: git push -u (first time)
+After: origin has your commits</div>
+    </div>
+    <div class="compare-card">
+      <h4 style="color:var(--upstream);">🏢 upstream → local</h4>
+      <div class="ascii-diagram">Command: git fetch upstream
+Direction: Company → Local refs
+When: Daily, or before rebase
+Required: git remote add upstream
+After: upstream/main ref updated</div>
+    </div>
+    <div class="compare-card">
+      <h4 style="color:var(--origin);">🍴 Sync origin ← upstream</h4>
+      <div class="ascii-diagram">Command: git push origin main
+(after rebase upstream/main)
+Direction: local → origin
+When: After morning sync
+After: Your fork's main is current</div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────── CONCLUSION ──────────────────────────────── -->
+<div class="conclusion">
+  <h2>🚀 Big-Company Git: Summary</h2>
+  <p style="color:var(--text2);max-width:700px;margin:0 auto 1.5rem;font-size:0.9rem;">
+    Fork once. Clone your fork. Add upstream. Work in feature branches. Rebase daily. Push to origin. Open PR to upstream. You're now thinking like a senior engineer.
+  </p>
+
+  <div class="cheatsheet-grid">
+    <div class="cheat-item">
+      <span class="cheat-icon">🔵</span>
+      <div>
+        <strong>git fetch upstream</strong> is always safe to run from any branch. Downloads data, never changes your work.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🟢</span>
+      <div>
+        <strong>upstream/main ≠ local main.</strong> Fetch updates the reference; you still need to rebase to move your branch.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🟡</span>
+      <div>
+        <strong>Rebase > Merge</strong> for feature branches. Creates clean, linear history. Required before most PRs.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🔴</span>
+      <div>
+        <strong>--force-with-lease</strong> not --force. After rebase, hashes change — you must force-push, but safely.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🍴</span>
+      <div>
+        <strong>Fork only main</strong> by default. Fetch extra upstream branches on demand when you need them.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🎯</span>
+      <div>
+        <strong>Never commit to local main.</strong> Keep it as a clean mirror of upstream. All work in feature branches.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">📋</span>
+      <div>
+        <strong>PR = origin/feat/xyz → upstream/main.</strong> Never PR from your main. Never PR without syncing first.
+      </div>
+    </div>
+    <div class="cheat-item">
+      <span class="cheat-icon">🧹</span>
+      <div>
+        <strong>Clean up after merge.</strong> Delete local + remote feature branches. Keeps your repo uncluttered.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;font-family:var(--mono);font-size:0.7rem;color:var(--text3);">
+    Git Forking Workflow · AI_Agents Example · upstream/origin/local complete reference
+  </div>
+</div>
+
+</div><!-- /wrap -->
+</body>
+</html>
