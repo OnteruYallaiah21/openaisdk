@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents SDK - Guardrail Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .legend-item {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Agents SDK Execution Flow</h1>
+        <div class="subtitle">Input Guardrail & LLM Processing Pipeline</div>
+
+        <div class="mermaid">
+flowchart TD
+    User[User Input] -->|1. Intercept| Guard{Step 1: Input Guardrail}
+    
+    Guard -->|tripwire_triggered=True| Abort[STOP: Raise Exception]
+    Guard -->|tripwire_triggered=False| Init[Step 2: Dynamic Init]
+
+    Init -->|Inject RunContextWrapper| LLM{Step 3: LLM Brain}
+
+    LLM -->|Call Tool| Tool[Step 4: Python Function]
+    Tool -->|Return Result| LLM
+    
+    LLM -->|Handoff| NewAgent[Switch Active Agent]
+    NewAgent -->|Restart Flow| Guard
+
+    LLM -->|Produce Response| Validate{Step 5: Output Validation}
+    Validate -->|Schema PASS| End([User Receives Output])
+    Validate -->|Schema FAIL| Retry[Retry/Error Handling]
+
+    style Guard fill:#f96,stroke:#333,stroke-width:2px
+    style LLM fill:#bbf,stroke:#333
+    style Abort fill:#f66,stroke:#000
+    style End fill:#9f9,stroke:#333
+    style Retry fill:#ff9,stroke:#333
+    style Tool fill:#9cf,stroke:#333
+    style NewAgent fill:#9cf,stroke:#333
+    style Validate fill:#fc9,stroke:#333
+    style Init fill:#e6e6fa,stroke:#333
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background:#f96"></div> Input Guardrail</div>
+            <div class="legend-item"><div class="legend-color" style="background:#bbf"></div> LLM Brain</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f66"></div> Abort/Stop</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9f9"></div> Success</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff9"></div> Retry</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9cf"></div> Tools/Agents</div>
+            <div class="legend-item"><div class="legend-color" style="background:#fc9"></div> Validation</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e6e6fa"></div> Init</div>
+        </div>
+
+        <div class="status">
+            ⚡ Guardrail runs FIRST → Blocks math homework → Main Agent never executes<br>
+            <span class="badge">Mermaid v11.12.0</span>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                'background': '#ffffff',
+                'primaryColor': '#667eea',
+                'primaryBorderColor': '#333',
+                'primaryTextColor': '#333',
+                'lineColor': '#666',
+                'secondaryColor': '#f0f0f0',
+                'tertiaryColor': '#fff'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>

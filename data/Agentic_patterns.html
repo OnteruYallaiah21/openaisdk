@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Architecture - Advanced Flowchart</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,255,255,0.1) 100%);
+            border-bottom: 2px solid #00ffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+            50% { text-shadow: 0 0 40px rgba(0,255,255,0.8); }
+        }
+
+        .header p {
+            margin-top: 1rem;
+            color: #cccccc;
+            font-size: 1.2rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Flowchart Section */
+        .flowchart-section {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .flowchart-section:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #00ffff;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            border-radius: 2px;
+        }
+
+        .mermaid {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 2rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(255, 0, 255, 0.05) 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .card h3 {
+            color: #00ffff;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .card .badge {
+            display: inline-block;
+            background: rgba(0, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #00ffff;
+        }
+
+        .card p {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+
+        /* Details Section */
+        .details-section {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+        }
+
+        .details-section h2 {
+            color: #ff00ff;
+            margin-bottom: 1rem;
+        }
+
+        .code-block {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid #00ffff;
+        }
+
+        /* Interactive Elements */
+        .interactive-demo {
+            background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,255,255,0.05) 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .demo-step {
+            display: inline-block;
+            background: rgba(0, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            margin: 0.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #00ffff;
+        }
+
+        .demo-step:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .demo-output {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            min-height: 100px;
+            font-family: monospace;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            margin-top: 2rem;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .mermaid {
+                transform: scale(0.9);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="header">
+        <h1>🤖 AI Agent Architecture Flowchart</h1>
+        <p>Multi-Agent System with Advanced Pipeline Processing</p>
+        <p style="font-size: 0.9rem; margin-top: 1rem;">User Input → Router → Execution → Triage → RAG → Audit → Guardrails → Human Approval → Tools → Generator → Output</p>
+    </div>
+
+    <div class="container">
+        <!-- Main Flowchart -->
+        <div class="flowchart-section">
+            <div class="section-title">
+                <span>📊 System Architecture Flow</span>
+            </div>
+            <div class="mermaid" id="flowchart">
+                graph TB
+                    Start([👤 User Input]) --> Router[🎯 Router Agent<br/>Intent Classification]
+                    
+                    Router --> Execution[⚙️ Execution Flow<br/>Pipeline / State Machine]
+                    
+                    Execution --> Triage[🔍 Triage Agent<br/>Information Extraction]
+                    
+                    Triage --> RAG[📚 RAG System<br/>Knowledge Injection<br/>Vector Search + Context]
+                    
+                    RAG --> Audit[🛡️ Audit Agent<br/>Quality Evaluation]
+                    
+                    Audit --> Guardrails[🚦 Guardrails<br/>Code Rules + Validation]
+                    
+                    Guardrails --> HumanCheck{👨‍💻 Human Approval<br/>Required?}
+                    
+                    HumanCheck -->|Yes| HumanApp[✅ Human Review<br/>Approve/Reject]
+                    HumanCheck -->|No| Tools
+                    
+                    HumanApp -->|Approved| Tools
+                    HumanApp -->|Rejected| Reject[❌ Return to User<br/>with Feedback]
+                    
+                    Tools[🔧 Tool Calls<br/>DB/API/External Services]
+                    
+                    Tools --> Generator[🎨 Generator Agent<br/>Response Generation]
+                    
+                    Generator --> Output[✨ Final Output<br/>Return to User]
+                    
+                    Reject --> End((End))
+                    Output --> End
+                    
+                    style Start fill:#00ffff,stroke:#00ffff,stroke-width:2px,color:#000
+                    style Router fill:#ff00ff,stroke:#ff00ff,stroke-width:2px,color:#000
+                    style Execution fill:#00ff00,stroke:#00ff00,stroke-width:2px,color:#000
+                    style Triage fill:#ffff00,stroke:#ffff00,stroke-width:2px,color:#000
+                    style RAG fill:#ff6600,stroke:#ff6600,stroke-width:2px,color:#000
+                    style Audit fill:#ff0066,stroke:#ff0066,stroke-width:2px,color:#000
+                    style Guardrails fill:#6600ff,stroke:#6600ff,stroke-width:2px,color:#fff
+                    style HumanCheck fill:#00ffcc,stroke:#00ffcc,stroke-width:2px,color:#000
+                    style Tools fill:#ffcc00,stroke:#ffcc00,stroke-width:2px,color:#000
+                    style Generator fill:#cc00ff,stroke:#cc00ff,stroke-width:2px,color:#fff
+                    style Output fill:#00ff99,stroke:#00ff99,stroke-width:2px,color:#000
+                    style HumanApp fill:#33ff33,stroke:#33ff33,stroke-width:2px,color:#000
+                    style Reject fill:#ff3333,stroke:#ff3333,stroke-width:2px,color:#fff
+            </div>
+        </div>
+
+        <!-- Detailed Cards -->
+        <div class="section-title">
+            <span>🎯 Component Deep Dive</span>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <div class="badge">Step 1</div>
+                <h3>🎯 Router Agent</h3>
+                <p><strong>Function:</strong> Classifies user intent and routes to appropriate handler.</p>
+                <p><strong>Techniques:</strong> Intent classification, NLP, semantic routing</p>
+                <p><strong>Output:</strong> Intent type + confidence score</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 2</div>
+                <h3>⚙️ Execution Flow</h3>
+                <p><strong>Function:</strong> Manages pipeline state and orchestrates execution order.</p>
+                <p><strong>Patterns:</strong> State Machine, Pipeline Pattern, DAG Execution</p>
+                <p><strong>Features:</strong> Parallel execution, error recovery, retry logic</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 3</div>
+                <h3>🔍 Triage Agent</h3>
+                <p><strong>Function:</strong> Extracts key information and entities from user input.</p>
+                <p><strong>Techniques:</strong> NER, Information Extraction, Data Parsing</p>
+                <p><strong>Output:</strong> Structured data, entities, parameters</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 4</div>
+                <h3>📚 RAG System</h3>
+                <p><strong>Function:</strong> Retrieves relevant knowledge and injects context.</p>
+                <p><strong>Techniques:</strong> Vector embeddings, Semantic search, Context window management</p>
+                <p><strong>Output:</strong> Enriched context + relevant documents</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 5</div>
+                <h3>🛡️ Audit Agent</h3>
+                <p><strong>Function:</strong> Evaluates response quality and safety before proceeding.</p>
+                <p><strong>Metrics:</strong> Relevance, Toxicity, Bias, Hallucination detection</p>
+                <p><strong>Output:</strong> Quality score + flags + recommendations</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 6</div>
+                <h3>🚦 Guardrails</h3>
+                <p><strong>Function:</strong> Enforces code rules, policies, and compliance checks.</p>
+                <p><strong>Rules:</strong> PII detection, Policy compliance, Format validation</p>
+                <p><strong>Output:</strong> Pass/Fail + violation details</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 7</div>
+                <h3>👨‍💻 Human Approval</h3>
+                <p><strong>Function:</strong> Critical decision point for sensitive operations.</p>
+                <p><strong>Triggers:</strong> High-risk actions, Data modifications, External calls</p>
+                <p><strong>Output:</strong> Approval/Rejection + feedback loop</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 8</div>
+                <h3>🔧 Tool Calls</h3>
+                <p><strong>Function:</strong> Executes external operations and data access.</p>
+                <p><strong>Types:</strong> Database queries, API calls, File operations, Compute</p>
+                <p><strong>Output:</strong> Raw data + execution metadata</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Step 9</div>
+                <h3>🎨 Generator Agent</h3>
+                <p><strong>Function:</strong> Produces final formatted response for user.</p>
+                <p><strong>Techniques:</strong> LLM prompting, Response formatting, Template filling</p>
+                <p><strong>Output:</strong> User-ready response + citations</p>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="interactive-demo">
+            <h2 style="color: #00ffff;">🎮 Interactive Pipeline Demo</h2>
+            <p>Click on any step to simulate the pipeline processing:</p>
+            <div>
+                <span class="demo-step" onclick="simulateStep('router')">🎯 Router</span>
+                <span class="demo-step" onclick="simulateStep('execution')">⚙️ Execution</span>
+                <span class="demo-step" onclick="simulateStep('triage')">🔍 Triage</span>
+                <span class="demo-step" onclick="simulateStep('rag')">📚 RAG</span>
+                <span class="demo-step" onclick="simulateStep('audit')">🛡️ Audit</span>
+                <span class="demo-step" onclick="simulateStep('guardrails')">🚦 Guardrails</span>
+                <span class="demo-step" onclick="simulateStep('human')">👨‍💻 Human Approval</span>
+                <span class="demo-step" onclick="simulateStep('tools')">🔧 Tools</span>
+                <span class="demo-step" onclick="simulateStep('generator')">🎨 Generator</span>
+                <span class="demo-step" onclick="simulateFullPipeline()">🚀 Run Full Pipeline</span>
+                <span class="demo-step" onclick="clearDemo()">🗑️ Clear</span>
+            </div>
+            <div class="demo-output" id="demoOutput">
+                💡 Click on any step to see what happens...
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="details-section">
+            <h2>🔧 Advanced Implementation Details</h2>
+            
+            <h3 style="color: #00ffff; margin-top: 1rem;">State Machine Configuration</h3>
+            <div class="code-block">
+                <pre style="color: #00ff00;">
+# Pipeline State Machine Definition
+states = {
+    "INIT": {"next": "ROUTER"},
+    "ROUTER": {"next": "EXECUTION", "on_error": "ERROR_HANDLER"},
+    "EXECUTION": {"next": "TRIAGE", "parallel": True},
+    "TRIAGE": {"next": "RAG"},
+    "RAG": {"next": "AUDIT", "retry": 3},
+    "AUDIT": {"next": "GUARDRAILS", "quality_threshold": 0.8},
+    "GUARDRAILS": {"next": "HUMAN_APPROVAL", "rules": ["pii", "toxicity"]},
+    "HUMAN_APPROVAL": {"next": "TOOLS", "timeout": 300},
+    "TOOLS": {"next": "GENERATOR", "parallel": True},
+    "GENERATOR": {"next": "OUTPUT"},
+    "OUTPUT": {"final": True}
+}
+                </pre>
+            </div>
+
+            <h3 style="color: #00ffff; margin-top: 1rem;">RAG Implementation Pattern</h3>
+            <div class="code-block">
+                <pre style="color: #00ff00;">
+class RAGSystem:
+    def __init__(self, vector_store, llm):
+        self.vector_store = vector_store
+        self.llm = llm
+    
+    async def retrieve_and_inject(self, query, top_k=5):
+        # Vector similarity search
+        docs = await self.vector_store.similarity_search(query, k=top_k)
+        
+        # Re-rank results
+        ranked_docs = await self.rerank(docs, query)
+        
+        # Build context window
+        context = self.build_context(ranked_docs)
+        
+        # Inject into prompt
+        enriched_prompt = f"""
+        Context: {context}
+        
+        User Query: {query}
+        
+        Based on the above context, provide an accurate response.
+        """
+        
+        return await self.llm.generate(enriched_prompt)
+                </pre>
+            </div>
+
+            <h3 style="color: #00ffff; margin-top: 1rem;">Guardrail Rules Example</h3>
+            <div class="code-block">
+                <pre style="color: #00ff00;">
+# Guardrail Configuration
+guardrails = {
+    "pii_detection": {
+        "patterns": ["email", "phone", "ssn", "credit_card"],
+        "action": "mask_or_block"
+    },
+    "toxicity_filter": {
+        "threshold": 0.7,
+        "action": "flag_for_review"
+    },
+    "policy_compliance": {
+        "rules": ["no_harmful_content", "no_illegal_activities"],
+        "action": "reject"
+    },
+    "format_validation": {
+        "required_fields": ["response", "confidence", "sources"],
+        "action": "reformat"
+    }
+}
+                </pre>
+            </div>
+
+            <h3 style="color: #00ffff; margin-top: 1rem;">Audit Metrics Collection</h3>
+            <div class="code-block">
+                <pre style="color: #00ff00;">
+class AuditAgent:
+    def evaluate(self, input_data, output_data):
+        metrics = {
+            "relevance_score": self.calculate_relevance(input_data, output_data),
+            "toxicity_score": self.check_toxicity(output_data),
+            "bias_score": self.detect_bias(output_data),
+            "hallucination_risk": self.estimate_hallucination(output_data),
+            "confidence": self.calculate_confidence(output_data)
+        }
+        
+        decision = "PASS" if metrics["relevance_score"] > 0.7 \
+                              and metrics["toxicity_score"] < 0.3 \
+                              else "FLAG"
+        
+        return {
+            "decision": decision,
+            "metrics": metrics,
+            "recommendations": self.generate_recommendations(metrics)
+        }
+                </pre>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="details-section">
+            <h2>📊 Performance Optimizations</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>⚡ Parallel Processing</h3>
+                    <p>Execute independent steps simultaneously (RAG + Triage, multiple tool calls)</p>
+                </div>
+                <div class="card">
+                    <h3>🔄 Caching Strategy</h3>
+                    <p>Multi-level cache for RAG results, tool responses, and frequent queries</p>
+                </div>
+                <div class="card">
+                    <h3>📈 Streaming Response</h3>
+                    <p>Progressive output delivery with token-by-token streaming</p>
+                </div>
+                <div class="card">
+                    <h3>🎯 Intelligent Routing</h3>
+                    <p>Dynamic routing based on intent complexity and historical patterns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🤖 AI Agent Architecture | Advanced Multi-Agent Pipeline | Real-time Processing</p>
+        <p style="margin-top: 0.5rem;">Router → Execution → Triage → RAG → Audit → Guardrails → Human Approval → Tools → Generator → Output</p>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            themeVariables: {
+                'background': 'transparent',
+                'primaryColor': '#00ffff',
+                'primaryBorderColor': '#00ffff',
+                'primaryTextColor': '#ffffff',
+                'lineColor': '#00ffff',
+                'secondaryColor': '#ff00ff',
+                'tertiaryColor': '#000000'
+            }
+        });
+
+        // Interactive Demo Functions
+        const stepDescriptions = {
+            router: "🎯 Router Agent: Classifying user intent...\n✅ Intent detected: 'technical_query' with 94% confidence\n📋 Routing to: Technical Pipeline",
+            execution: "⚙️ Execution Flow: Initializing pipeline state machine...\n📊 Current state: PROCESSING\n🔄 Parallel execution enabled: Yes\n✅ State transition: INIT → ROUTER → TRIAGE",
+            triage: "🔍 Triage Agent: Extracting key information...\n📝 Entities found: ['Python', 'API', 'database']\n🔑 Parameters: {'language': 'Python', 'framework': 'FastAPI'}\n✅ Structured data ready",
+            rag: "📚 RAG System: Retrieving relevant knowledge...\n🔍 Vector search complete: 5 documents found\n📄 Context window: 2048 tokens\n✅ Knowledge injection successful",
+            audit: "🛡️ Audit Agent: Evaluating quality...\n📊 Relevance score: 0.89\n🚫 Toxicity score: 0.02\n⚖️ Bias score: 0.05\n✅ Quality threshold met: PASS",
+            guardrails: "🚦 Guardrails: Enforcing rules...\n🔒 PII check: No sensitive data found\n✅ Policy compliance: Passed\n📝 Format validation: Valid\n✅ All guardrails passed",
+            human: "👨‍💻 Human Approval: Critical operation detected...\n📋 Request: Database write operation\n👤 Approver: admin@system.com\n⏱️ Timeout: 5 minutes\n✅ Operation approved",
+            tools: "🔧 Tool Calls: Executing external operations...\n💾 Database query: SELECT * FROM users\n🌐 API call: GET /api/data\n✅ Results: 42 records retrieved",
+            generator: "🎨 Generator Agent: Producing final response...\n🤖 LLM invocation: GPT-4\n📝 Response formatting: Complete\n✅ Final output ready for user"
+        };
+
+        function simulateStep(step) {
+            const output = document.getElementById('demoOutput');
+            const description = stepDescriptions[step] || `Processing ${step}...`;
+            output.innerHTML = `<span style="color: #00ff00;">▶️ ${description}</span>`;
+            output.style.borderLeft = '3px solid #00ff00';
+        }
+
+        function simulateFullPipeline() {
+            const output = document.getElementById('demoOutput');
+            let fullOutput = "🚀 FULL PIPELINE EXECUTION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
+            
+            for (const [step, desc] of Object.entries(stepDescriptions)) {
+                fullOutput += `✅ ${desc}\n\n`;
+            }
+            
+            fullOutput += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎉 Pipeline Complete! Final output delivered to user.\n⏱️ Total execution time: 1.24 seconds\n📊 Success rate: 100%";
+            
+            output.innerHTML = `<pre style="color: #00ff00; font-family: monospace; white-space: pre-wrap;">${fullOutput}</pre>`;
+            output.style.borderLeft = '3px solid #ff00ff';
+        }
+
+        function clearDemo() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = '💡 Click on any step to see what happens...';
+            output.style.borderLeft = '1px solid #00ffff';
+        }
+
+        // Add animation to cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Refresh mermaid on load
+        setTimeout(() => {
+            mermaid.contentLoaded();
+        }, 100);
+    </script>
+</body>
+</html>
