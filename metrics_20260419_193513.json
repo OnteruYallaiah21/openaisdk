@@ -1,0 +1,66 @@
+{
+  "session_duration": 263.7274091243744,
+  "total_usage": {
+    "input_tokens": 273,
+    "output_tokens": 222,
+    "total_tokens": 495,
+    "requests": 2,
+    "estimated_cost_usd": 0.0029025
+  },
+  "metrics": {
+    "agents": {
+      "Guardrail Agent": {
+        "calls": 1,
+        "total_time": 0.6615481376647949,
+        "avg_time": 0.6615481376647949,
+        "token_usage": {
+          "input": 130,
+          "output": 63,
+          "total": 193,
+          "requests": 1
+        }
+      },
+      "Dev Agent": {
+        "calls": 1,
+        "total_time": 0.38596200942993164,
+        "avg_time": 0.38596200942993164,
+        "token_usage": {
+          "input": 143,
+          "output": 159,
+          "total": 302,
+          "requests": 1
+        }
+      }
+    },
+    "tools": {},
+    "guardrails": {},
+    "routing": {
+      "calls": 1,
+      "total_time": 0.6624622344970703,
+      "avg_time": 0.6624622344970703
+    }
+  },
+  "conversation_history": [
+    {
+      "agent": "Guardrail Agent",
+      "timestamp": "2026-04-19T19:31:06.424226",
+      "usage": {
+        "input_tokens": 130,
+        "output_tokens": 63,
+        "total_tokens": 193,
+        "requests": 1
+      }
+    },
+    {
+      "agent": "Dev Agent",
+      "timestamp": "2026-04-19T19:31:06.811187",
+      "usage": {
+        "input_tokens": 143,
+        "output_tokens": 159,
+        "total_tokens": 302,
+        "requests": 1
+      }
+    }
+  ],
+  "timestamp": "2026-04-19T19:35:13.958842"
+}

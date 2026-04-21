@@ -58,3 +58,17 @@ try:
     print("✅ Model loaded from config")
 
 when we createing the agnet we need to pass this emodel i9nstace to the magent config 
+
+
+
+
+
+cusrsor email reading 
+=====================
+
+
+
+use the tool to read my emails from  zapier and configare and in AGNETS  WRITE CODE TO READ THE TOP THREE EMAIL FOR EMAIL 
+1. USE ONLY OPEN AI SDK AGNETS FRAME WORK AND 
+2. import are top of the  my code 
+3. debug statemnstly needs to be more radable more imporatnt statemnst onliy
